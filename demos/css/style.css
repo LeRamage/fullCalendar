@@ -1,0 +1,179 @@
+body {
+    margin-top: 40px;
+    font-size: 14px;
+    font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+}
+
+#calendar{
+    float: unset !important;
+    width: 100% !important;
+}
+
+#wrap {
+    margin: 0 1%;
+}
+
+#external-events{
+    text-align: center;
+    margin-top: 60px;
+    margin-bottom: 20px;
+}
+
+.evenement{
+    height: 50px;
+    text-align: center;
+    border: 1px solid !important;
+    width: 8%;
+    display: inline-block !important;
+}
+
+.fc-event{
+    cursor: pointer;
+}
+
+.evenement > p{
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.present, #present,.specialPresent{
+    background-color: #52c76d !important;
+}
+
+.demandeConge, #demandeConge{
+    background-color: #ca75cc !important;
+}
+
+.demandeConge{
+    color: #ca75cc !important;
+}
+
+.conge, #conge{
+    background-color: #d27a20 !important;
+}
+
+.conge{
+    color: #d27a20 !important;
+}
+
+.absence, #absence{
+    background-color: #e1c699 !important;
+}
+
+.absence{
+    color: #e1c699 !important;
+}
+
+.teletravail, #teletravail{
+    background-color: #6584ab !important;
+}
+
+.teletravail{
+    color: #6584ab !important;
+}
+
+.arret, #arret{
+    background-color: #654321 !important;
+}
+
+.arret{
+    color: #654321 !important;
+}
+
+.formation, #formation{
+    background-color: #e4df35 !important;
+}
+
+.formation{
+    color: #e4df35 !important;
+}
+
+.rdv_pro, #rdv_pro{
+    background-color: #7432df !important;
+}
+
+.rdv_pro{
+    color: #7432df !important;
+}
+
+.recup, #recup{
+    background-color: #49b6e0 !important;
+}
+
+.recup{
+    color: #49b6e0 !important;
+}
+.ferie_WE, #ferie_WE{
+    background-color: #6c757d !important;
+}
+
+#ferie_We{
+    color: #6c757d !important;
+}
+
+.congeDeny{
+    background: #dc3545 !important;
+}
+
+#calendar {
+    float: right;
+    width: 900px;
+}
+
+.modal-content{
+    width: 125% !important;
+}
+
+#alertD, #alertW{
+    text-align: center;
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
+
+.not-valid{
+    border:#dc3545 solid 1px !important;
+}
+
+.invalid,.isTheSame{
+    color:#dc3545;
+}
+
+.fc-timeline-event{
+    top: unset !important;
+}
+
+.split-right{
+    right: unset !important;
+}
+
+.split-left{
+    left: unset !important;
+}
+
+.fc-title{
+    text-align: center;
+    position: absolute !important;
+    -ms-transform: translate(0%, 50%);
+    transform: translate(0%, 50%);
+}
+
+.fc-cell-text{
+    font-size: 0.7em;
+}
+
+.recap{
+    background-color: transparent !important;
+}
+
+.zIndex{
+    z-index: -1 !important;
+}
+
+#test{
+    height: 37px !important;
+}
