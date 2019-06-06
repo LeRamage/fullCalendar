@@ -52,11 +52,11 @@ body {
     color: #ca75cc !important;
 }
 
-.conge, #conge{
+.conge, #conge,.DemandeCongeValid{
     background-color: #d27a20 !important;
 }
 
-.conge{
+.conge,.DemandeCongeValid{
     color: #d27a20 !important;
 }
 

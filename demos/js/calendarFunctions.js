@@ -250,11 +250,10 @@ function setHoursOfEvent(startHour,endHour,start,end,event,matineesIsChecked = f
 }
 
 // --------- Gère tout ce qu'il faut lors de la création d'un nouvel évènement  --------- //
-function EventsManagment(eventsToRemove,info,startHour,endHour,start,end,event,modal,matineesIsChecked,apremsIsChecked){
+function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal){
   if(eventsToRemove.length>0 && eventsToRemove[eventsToRemove.length-1] != true){
     event.setExtendedProp('ID',create_unique_ID());
     eventsToRemove.forEach(eventToRemove => eventToRemove.remove());
-    demandeCongesInfo.push(info);
     if(moment(start).isSame(moment(end),'day')){
       if(!(startHour=='Matin' && endHour=='Soir')){
         addEventPresentIfMidDay(start,end,event,startHour,endHour);
@@ -582,4 +581,17 @@ function createDefaultRecap(dates){
     }
   })
   calendar.addEventSource(events);
+}
+
+function remplirModalInfoEvent(typeEvent,event,modal){
+  typeEvent.forEach(function(info){
+    date = new Date(info["dateDebut"]);
+    if(moment(date).isSame(moment(event.start),'day') && info['emp_id'] == event.getResources()[0].id){
+      Object.keys(info).forEach(function(element){
+        $('#I'+element).val(info[element]);
+      })
+      return; // ?
+    }
+  }) 
+  modal.modal('show')
 }

@@ -1,5 +1,5 @@
 var calendar ;
-var demandeCongesInfo = [];
+var demandeCongesInfos = [], demandeCongeValidInfos = [], congeInfos = [], absenceInfos = [], arretInfos = [], teletravailInfos = [], formationInfos = [], rdv_proInfos = [], recupInfos = [];
 var width_event;
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     customButtons: {
       myCustomButton: {
-        text: 'go to date',
+        text: 'Aller à la date',
         click: function() {
           $('#goToDate').modal('show');
         }
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
         type:'resourceTimeline',
         duration:{ months: 3 },
         slotDuration: { days:1 },
-        buttonText: 'month',
+        buttonText: 'vue 3 mois',
       }
     },
 
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
       right: 'resourceTimeGridDay,custom3Month'
     },
 
-    resourceLabelText: 'Ressources',
+    resourceLabelText: 'Date',
     resourceGroupField: 'type',
     resources: [
       { id: 'emp1', type: 'Employés',title: 'Jean Bombeur' },
@@ -92,30 +92,58 @@ document.addEventListener('DOMContentLoaded', function() {
       $('#eventClicked').val(e.event);
 
       if(eventClassNames == 'demandeConge'){
-        demandeCongesInfo.forEach(function(conge){
-          dateConge = new Date(conge["VdateDebut"]);
-          if(moment(dateConge).isSame(moment(e.event.start),'day')){
-            Object.keys(conge).forEach(function(element){
-              $('#'+element).val(conge[element]);
+        $('#info-type-conge').show();
+        demandeCongesInfos.forEach(function(info){
+          dateConge = new Date(info["VdateDebut"]);
+          if(moment(dateConge).isSame(moment(e.event.start),'day') && info['emp_id'] == e.event.getResources()[0].id){
+            Object.keys(info).forEach(function(element){
+              $('#'+element).val(info[element]);
             })
             return; // ?
           }
         }) 
         $('#modalValidationConge').modal('show')
       }
-
       else if(eventClassNames == 'conge'){
-        demandeCongesInfo.forEach(function(conge){
-          dateConge = new Date(conge["VdateDebut"]);
-          if(moment(dateConge).isSame(moment(e.event.start),'day')){
-            Object.keys(conge).forEach(function(element){
-              $('#I'+element.slice(1)).val(conge[element]);
-            })
-            return; // ?
-          }
-        })
-        $('#modalInfoConge').modal('show')
+        $('#modalInfoEvent').modal({backdrop: 'static'});
+        $('#info-type-conge').show();
+        remplirModalInfoEvent(congeInfos,e.event,$('#modalInfoEvent'));
       }
+      else if(eventClassNames == 'absence'){
+        $('#modalInfoEvent').modal({backdrop: 'static'});
+        $('#info-type-conge').hide();
+        remplirModalInfoEvent(absenceInfos,e.event,$('#modalInfoEvent'));       
+      }  
+      else if(eventClassNames == 'arret'){
+        $('#modalInfoEvent').modal({backdrop: 'static'});
+        $('#info-type-conge').hide();
+        remplirModalInfoEvent(arretInfos,e.event,$('#modalInfoEvent'));
+      }  
+      else if(eventClassNames == 'teletravail'){
+        $('#modalInfoEvent').modal({backdrop: 'static'});
+        $('#info-type-conge').hide();
+        remplirModalInfoEvent(teletravailInfos,e.event,$('#modalInfoEvent'));
+      } 
+      else if(eventClassNames == 'formation'){
+        $('#modalInfoEvent').modal({backdrop: 'static'});
+        $('#info-type-conge').hide();
+        remplirModalInfoEvent(formationInfos,e.event,$('#modalInfoEvent'));
+      }  
+      else if(eventClassNames == 'rdv_pro'){
+        $('#modalInfoEvent').modal({backdrop: 'static'});
+        $('#info-type-conge').hide();
+        remplirModalInfoEvent(rdv_proInfos,e.event,$('#modalInfoEvent'));
+      }     
+      else if(eventClassNames == 'recup'){
+        $('#modalInfoEvent').modal({backdrop: 'static'});
+        $('#info-type-conge').hide();
+        remplirModalInfoEvent(recupInfos,e.event,$('#modalInfoEvent'));
+      }
+      else if(eventClassNames == 'demandeCongeValid'){
+        $('#modalInfoEvent').modal({backdrop: 'static'});
+        $('#info-type-conge').hide();
+        remplirModalInfoEvent(demandeCongeValidInfos,e.event,$('#modalInfoEvent'));
+      } 
     },
 
     eventReceive: function(e){
@@ -220,6 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // ajoute un listener pour le doubleclick sur l'évenements présent
       if(event.event.classNames[0] == 'present'){
         element[0].addEventListener('dblclick', function(){
+          $('#modalAddEvent').modal({backdrop: 'static'});
           $('#modalAddEvent').modal('show');
           $('#addEdateDebut').val(moment(event.event.start).add(1,'days').toISOString().slice(0,10));
           $('#addEdateFin').val(moment(event.event.start).add(1,'days').toISOString().slice(0,10));

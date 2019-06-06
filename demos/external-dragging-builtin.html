@@ -229,21 +229,21 @@
       </div>
     </div>
 
-    <!-- -------- Modal 3  Infos Congé ---------- -->   
-    <div class="modal fade" id="modalInfoConge" tabindex="-1" role="dialog" aria-labelledby="modalInfoCongeLabel" aria-hidden="true">
+    <!-- -------- Modal 3  Infos Event ---------- -->   
+    <div class="modal fade" id="modalInfoEvent" tabindex="-1" role="dialog" aria-labelledby="modalInfoEventLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="modalInfoCongeLabel">Description Congé</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <h5 class="modal-title" id="modalInfoEventLabel">Description de l'événement</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="cancelModalInfoEvent()">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body">
             
-            <!-- -------- Formulaire Info Conge ---------- -->
-            <form id='form-info-conge'>
-              <div class="form-group row">
+            <!-- -------- Formulaire Info Event ---------- -->
+            <form id='form-info-event'>
+              <div class="form-group row" id='info-type-conge'>
                   <label for="ItypeConge" class="col-sm-4">Type de congés</label>
                   <div class="col-sm-8">
                       <input class="form-control" id='ItypeConge' disabled="disabled">
@@ -258,26 +258,31 @@
                 <div class="col-sm-6">
                     <label for="IdateFin">Date de fin</label>
                     <input type="date" class="form-control" id="IdateFin" disabled="disabled">
+                    <div class="invalid" style="display: none">
+                      Date de fin inférieur à Date de début
+                    </div>
                 </div>
               </div>
 
               <div class="form-group row">
                 <div class="col-sm-6">
                   <label for="IheureDebut">Heure de début</label>
-                  <input class="form-control" id="IheureDebut" disabled="disabled">
+                  <select class="custom-select" id="IheureDebut" disabled="disabled">
+                    <option selected value="Matin">Matin</option>
+                    <option value="Après-midi">Après-midi</option>
+                  </select>
                 </div>
                 <div class="col-sm-6">
                   <label for="IheureFin">Heure de fin</label>              
-                  <input class="form-control" id="IheureFin" disabled="disabled">
+                  <select class="custom-select" id="IheureFin" disabled="disabled">
+                    <option selected value="Soir">Soir</option>
+                    <option value="Après-midi">Après-midi</option>
+                  </select>
                 </div>
               </div>
-
-              <!-- <div class="form-group row">
-                <label for="InbJours" class="col-sm-4">Nombre de jours</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control" id="InbJours" disabled="disabled">
-                </div>
-              </div> -->
+              <div class="isTheSame" style="display: none">
+                l'heure de début ne peut être la même que celle de fin
+              </div>
 
               <div class="form-group row">
                 <label for="Icommentaire" class="col-sm-4">Commentaires</label>
@@ -285,8 +290,12 @@
                   <textarea class="form-control" id="Icommentaire" rows="3" disabled="disabled"></textarea>
                 </div>
               </div>            
-            </form>
-            
+            </form>            
+          </div>
+
+          <div class="modal-footer" id="modif-event">
+            <button id='modif-event-btn' type="button" class="btn btn-primary" onclick="activate_modif_event()">Modifier</button>
+            <button id='valid-modif-event-btn' type="button" class="btn btn-primary" style="display: none" onclick="valid_modif_event($('#eventClicked').val())">Valider Modifications</button>
           </div>
 
         </div>
@@ -764,13 +773,13 @@
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Supprimer le/les évenement(s)</h5>
+            <h5 class="modal-title">Supprimer le/les événement(s)</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body">
-            <p>Cette action supprimera tous les évenements présents à cette/ces date(s)!</p> 
+            <p>Cette action supprimera tous les événements présents à cette/ces date(s)!</p> 
             <p>Voulez-vous continuer?</p>
           </div>
           <div class="modal-footer">
@@ -818,7 +827,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="modalAddEvent">Quelle évènement voulez-vous ajouter?</h5>
-            <button type="button" class="close" data-dismiss="modal">
+            <button type="button" class="close" data-dismiss="modal" onclick="cancelModalAddEvent()">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
@@ -923,7 +932,7 @@
             </div>
   
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary">Annuler</button>
+              <button type="button" class="btn btn-secondary" onclick="cancelModalAddEvent()">Annuler</button>
               <button id="btn-confirm-demandeconge" type="button" class="btn btn-primary" type="submit" onclick="confirm_form_addEvent()">Valider</button>
             </div>
         </div>
