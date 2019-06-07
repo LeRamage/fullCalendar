@@ -46,10 +46,10 @@ document.addEventListener('DOMContentLoaded', function() {
     defaultView: 'custom3Month',
     timezone : 'local',
     locale: 'fr',
+    droppable:true,
     editable: false,
     displayEventTime: false,
     displayEventEnd: false,
-    disableDragging: true,
     contentHeight: 'auto',
     resourceAreaWidth: '10%',
 
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
       { id: 'emp4', type: 'Employés',title: 'Alain Dii' },
       { id: 'recap-present', type:'Récapitulatif', title: 'Total Présences'},
     ],
-
+    
     eventClick: function(e) {
       var eventClassNames = e.event.classNames[0];
       $('#eventClicked').val(e.event);
@@ -141,8 +141,17 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       else if(eventClassNames == 'demandeCongeValid'){
         $('#modalInfoEvent').modal({backdrop: 'static'});
-        $('#info-type-conge').hide();
-        remplirModalInfoEvent(demandeCongeValidInfos,e.event,$('#modalInfoEvent'));
+        $('#info-type-conge').show();
+        demandeCongeValidInfos.forEach(function(info){
+          date = new Date(info["VdateDebut"]);
+          if(moment(date).isSame(moment(e.event.start),'day') && info['emp_id'] == e.event.getResources()[0].id){
+            Object.keys(info).forEach(function(element){
+              $('#I'+element.slice(1)).val(info[element]);
+            })
+            return; // ?
+          }
+        })
+        $('#modalInfoConge').modal('show')
       } 
     },
 

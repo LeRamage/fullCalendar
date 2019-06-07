@@ -137,6 +137,7 @@ function confirm_form_Absence(){
   } 
 }
 
+// --------- Validation formulaire arret --------- //
 function confirm_form_Arret(){
   let start = new Date($('#ArdateDebut').val());
   let end = new Date($('#ArdateFin').val());
@@ -182,6 +183,7 @@ function confirm_form_Arret(){
   } 
 }
 
+// --------- Validation formulaire teletravail --------- //
 function confirm_form_Teletravail(){
   let start = new Date($('#TdateDebut').val());
   let end = new Date($('#TdateFin').val());
@@ -227,6 +229,7 @@ function confirm_form_Teletravail(){
   } 
 }
 
+// --------- Validation formulaire formation --------- //
 function confirm_form_formation(){
   let start = new Date($('#FdateDebut').val());
   let end = new Date($('#FdateFin').val());
@@ -272,6 +275,7 @@ function confirm_form_formation(){
   } 
 }
 
+// --------- Validation formulaire rdv pro --------- //
 function confirm_form_RdvPro(){
   let start = new Date($('#RDVdateDebut').val());
   let end = new Date($('#RDVdateFin').val());
@@ -317,6 +321,7 @@ function confirm_form_RdvPro(){
   } 
 }
 
+// --------- Validation formulaire recup --------- //
 function confirm_form_Recup(){
   let start = new Date($('#RdateDebut').val());
   let end = new Date($('#RdateFin').val());
@@ -362,6 +367,7 @@ function confirm_form_Recup(){
   } 
 }
 
+// --------- Validation formulaire d'ajout d'événement --------- //
 function confirm_form_addEvent(){
   let start = new Date($('#addEdateDebut').val());
   let end = new Date($('#addEdateFin').val());
@@ -421,12 +427,7 @@ function confirm_form_addEvent(){
           break;
       }
       
-      if(_classNames == 'DemandeConge'){
-        pushInfos(event.classNames[0],info,$("form#form-addEvent :input"),$("#eventDblClicked").val().getResources()[0].id)
-      }
-      else{
-        pushInfos(_classNames,info,$("form#form-addEvent :input"),$("#eventDblClicked").val().getResources()[0].id)
-      }
+      pushInfos(_classNames,info,$("form#form-addEvent :input"),$("#eventDblClicked").val().getResources()[0].id)
 
       let event = {
         classNames: _classNames,
@@ -443,6 +444,7 @@ function confirm_form_addEvent(){
   }  
 }
 
+// --------- permet de passer de la description à la modification --------- //
 function activate_modif_event(){
   $('#valid-modif-event-btn').show();
   $('#modif-event-btn').hide();
@@ -482,17 +484,42 @@ function valid_modif_event(event){
     $('#IheureDebut').removeClass('not-valid');
     $('#IheureFin').removeClass('not-valid');
 
-    let eventsToRemove = thisDateHasEvent(start,end,event.getResources()[0].id,true);
-    if(!eventsToRemove.find(e=>e==true)) {
-      EventsManagment(eventsToRemove,startHour,endHour,start,end,event,$('#modalInfoEvent'));
-      modifInfos(event.classNames[0],$("form#form-info-event :input"),start);   
-      cancelModalInfoEvent()  
+    let resetEvent;
+    let _extendedProps;
+    resetEvent = {
+      classNames : event.classNames[0],
+      start:start,
+      end:end,
+      resourceId:event.getResources()[0].id,
+    };
+    _extendedProps = event.extendedProps.ID;
+    deleteEvent(event);
+    calendar.addEvent(resetEvent);
+    resetEvent = calendar.getEvents()[calendar.getEvents().length-1]
+    resetEvent.setExtendedProp('_ID',_extendedProps);
+    pushInfos(resetEvent.classNames[0],info = [],$("form#form-info-event :input"),resetEvent.getResources()[0].id)
+    let eventsToRemove = thisDateHasEvent(start,end,resetEvent.getResources()[0].id,true);
+    if(eventsToRemove.length > 0 && !eventsToRemove.find(e=>e==true)) {
+      EventsManagment(eventsToRemove,startHour,endHour,start,end,resetEvent,$('#modalInfoEvent'));
+      cancelModalInfoEvent(); 
     }
-    //$('#modalInfoEvent').modal('hide');
-
-    // let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
-    // EventsManagment(eventsToRemove,startHour,endHour,start,end,event,'#modalRecup'); 
+    else{
+      cancelModalInfoEvent();
+    } 
+    
   } 
+}
+
+// --------- Permet de se rendre à une date --------- //
+function goToDate(date){
+  dt = new Date(date)
+  let oldViewStart = calendar.view.activeStart;
+  calendar.gotoDate(dt);
+  let newViewStart = calendar.view.activeStart;
+  if(oldViewStart < newViewStart){
+    createDefault();
+  }
+  $('#goToDate').modal('hide');
 }
 
 // --------- Hide Modals et reset form-input | msg-erreur --------- //
@@ -573,18 +600,58 @@ function cancelModalAddEvent(){
 
 // --------- Validation d'une Demande Congé --------- //
 function validation_demande_conge(event){
-    let newEvent = {
-      start:event.start,
-      end:event.end,
-      classNames:['DemandeCongeValid','zIndex'],
+  let start = new Date($('#VdateDebut').val());
+  let end = new Date($('#VdateFin').val());
+  let startHour = $('#VheureDebut').val();
+  let endHour = $('#VheureFin').val();
+
+  if((start <= end) == false){
+    $('.invalid').show()
+    let element = document.getElementById('VdateFin');
+    element.classList.add('not-valid');
+  }
+
+  else if(
+    (moment(start).isSame(moment(end),'day')) 
+    && (startHour =='Après-midi' && endHour == 'Après-midi')
+  ){
+    $('.isTheSame').show()
+    let element = document.getElementById('VheureDebut');
+    element.classList.add('not-valid');
+    element = document.getElementById('VheureFin');
+    element.classList.add('not-valid');
+  }
+
+  else{
+    $('.invalid').hide();
+    $('#VdateFin').removeClass('not-valid');
+    $('.isTheSame').hide();
+    $('#VheureDebut').removeClass('not-valid');
+    $('#VheureFin').removeClass('not-valid');
+
+    let resetEvent;
+    let _extendedProps;
+    resetEvent = {
+      classNames:['demandeCongeValid','zIndex'],
       extendedProps: {'ID':event.extendedProps.ID},
+      start:start,
+      end:end,
       resourceId:event.getResources()[0].id,
+    };
+    _extendedProps = event.extendedProps.ID;
+    deleteEvent(event);
+    calendar.addEvent(resetEvent);
+    resetEvent = calendar.getEvents()[calendar.getEvents().length-1]
+    resetEvent.setExtendedProp('_ID',_extendedProps);
+    pushInfos(resetEvent.classNames[0],info = [],$("form#form-validation-conge :input"),resetEvent.getResources()[0].id)
+    let eventsToRemove = thisDateHasEvent(start,end,resetEvent.getResources()[0].id,true);
+    if(eventsToRemove.length > 0 && !eventsToRemove.find(e=>e==true)) {
+      EventsManagment(eventsToRemove,startHour,endHour,start,end,resetEvent,$('#modalValidationConge'));
     }
-    
-    event.remove(); 
-    calendar.addEvent(newEvent);
-    
-    $('#modalValidationConge').modal('hide'); 
+    else{
+      $('#modalValidationConge').modal('hide')
+    }
+  }
 }
 
 // --------- Deny d'un Congé --------- //
@@ -599,125 +666,4 @@ function denyDemandeConge(event){
   event.remove();
   calendar.addEvent(newEvent);
   $('#modalValidationConge').modal('hide'); 
-}
-
-function pushInfos(classNames,info,form,emp_id){
-  if(classNames == 'DemandeConge'){
-    form.each(function(){
-      let info_id = 'V'+$(this)[0].id.slice(4);
-      let val = $(this).val() ;
-      info[info_id] = val;
-    })
-    info['emp_id'] = emp_id;
-    demandeCongesInfos.push(info);
-  }
-  else{
-    $("form#form-addEvent :input").each(function(){
-      let info_id = $(this)[0].id.slice(4);
-      let val = $(this).val() ;
-      info[info_id] = val;
-    })
-    info['emp_id'] = emp_id;
-    if(classNames == "conge")
-      congeInfos.push(info);
-    else if(classNames == "absence")
-      absenceInfos.push(info);
-    else if(classNames == "arret")
-      arretInfos.push(info);
-    else if(classNames == "teletravail")
-      teletravailInfos.push(info);
-    else if(classNames == "formation")
-      formationInfos.push(info);
-    else if(classNames == "rdv_pro")
-      rdv_proInfos.push(info);
-    else if(classNames == "recup")
-      recupInfos.push(info);
-  }
-}
-
-function modifInfos(classNames,form,start){
-
-  if(classNames == "conge"){
-    congeInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day')){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }
-    
-  else if(classNames == "absence"){
-    absenceInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day')){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }
-    
-  else if(classNames == "arret"){
-    arretInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day')){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }
-    
-  else if(classNames == "teletravail"){
-    teletravailInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day')){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }
-    
-  else if(classNames == "formation"){
-    formationInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day')){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }
-    
-  else if(classNames == "rdv_pro"){
-    rdv_proInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day')){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }
-    
-  else if(classNames == "recup"){
-    recupInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day')){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }      
 }

@@ -1,5 +1,5 @@
 /* --------- Check si un évenemment existe à/aux dates(s) du drop 
-             Si celui-ci est de type présent ou weekend / ferié le drop est possible, sinon erreur --------- */
+             Si celui-ci est de type présent / ferié le drop est possible, sinon erreur --------- */
 function thisDateHasEvent(start,end,resourceId,isTrue = false){
   let hasNext = false;
   let allEvents = calendar.getEvents();
@@ -10,27 +10,38 @@ function thisDateHasEvent(start,end,resourceId,isTrue = false){
 
   if(moment(start).isSame(moment(end),'day')){ // External Event = 1 journée
     let allEventsFilter = allEvents.filter(e => moment(e.start).isSame(moment(start),'day'))
-    allEventsFilter = allEventsFilter.filter(e=>e.getResources()[0].id == resourceId)
-    allEventsFilter.forEach(function(e){
-      if(e.classNames[0] == 'present' || e.classNames[0] == 'ferie_WE' ){
-          eventsToRemove.push(e); 
-      } 
-      else
-        hasNext = true;
-    })
+    if(allEventsFilter.length == 0){
+      eventsToRemove.push('thisDateIsEmpty');
+    }
+    else{
+      allEventsFilter = allEventsFilter.filter(e=>e.getResources()[0].id == resourceId)
+      allEventsFilter.forEach(function(e){
+        if(e.classNames[0] == 'present' || e.classNames[0] == 'ferie_WE' ){
+            eventsToRemove.push(e); 
+        } 
+        else
+          hasNext = true;
+      })
+    }
   }
 
   else{ // External Event = plrs journées
     let allEventsFilter = allEvents.filter(e => daysToCheck.find(date => moment(date).isSame(moment(e.start),'day')))
-    allEventsFilter = allEventsFilter.filter(e=>e.getResources()[0].id == resourceId)
-    allEventsFilter.forEach(function(e){
-      if(e.classNames[0] == 'present' || e.classNames[0] == 'ferie_WE' ){
-          eventsToRemove.push(e); 
-      }  
-      else
-        hasNext = true;
-    })
+    if(allEventsFilter.length == 0){
+      eventsToRemove.push('thisDateIsEmpty');
+    }
+    else{
+      allEventsFilter = allEventsFilter.filter(e=>e.getResources()[0].id == resourceId)
+      allEventsFilter.forEach(function(e){
+        if(e.classNames[0] == 'present' || e.classNames[0] == 'ferie_WE' ){
+            eventsToRemove.push(e); 
+        }  
+        else
+          hasNext = true;
+      })
+    }
   }
+
   if(hasNext)
     eventsToRemove.push(hasNext);
 
@@ -104,7 +115,7 @@ function createDateArray(start,end){
     dateArray = [],
     dt = new Date(start);
 
-  while (moment(dt).dayOfYear() <= moment(end).dayOfYear()) {
+  while (moment(dt).isSameOrBefore(end) || moment(dt).isSame(end,'day')) {
     dateArray.push(new Date(dt));
     dt.setDate(dt.getDate() + 1);
   }
@@ -251,7 +262,7 @@ function setHoursOfEvent(startHour,endHour,start,end,event,matineesIsChecked = f
 
 // --------- Gère tout ce qu'il faut lors de la création d'un nouvel évènement  --------- //
 function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal){
-  if(eventsToRemove.length>0 && eventsToRemove[eventsToRemove.length-1] != true){
+  if(eventsToRemove.length>0 && eventsToRemove[eventsToRemove.length-1] != true && eventsToRemove.find(e => e == 'thisDateIsEmpty')!="thisDateIsEmpty"){
     event.setExtendedProp('ID',create_unique_ID());
     eventsToRemove.forEach(eventToRemove => eventToRemove.remove());
     if(moment(start).isSame(moment(end),'day')){
@@ -275,6 +286,28 @@ function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal)
     $(modal).modal('hide');    
     setHeightOfRow();
   }
+  else if(eventsToRemove.find(e => e == 'thisDateIsEmpty')){
+    event.setExtendedProp('ID',create_unique_ID());
+    if(moment(start).isSame(moment(end),'day')){
+      if(!(startHour=='Matin' && endHour=='Soir')){
+        addEventPresentIfMidDay(start,end,event,startHour,endHour);
+      }
+    }
+    else{
+      setHoursOfEvent(startHour,endHour,start,end,event);
+      if(startHour == 'Après-midi' && endHour == 'Après-midi'){
+        addSpecialEventPresentIfMidDay(start,end,event);
+      }
+      else if(startHour == 'Après-midi'){
+        addEventPresentIfMidDay(start,start,event,startHour,endHour);
+      }
+      else if(endHour == 'Après-midi')
+        addEventPresentIfMidDay(end,end,event,startHour,endHour);
+    }
+    event.setProp('title','');
+    $(modal).modal('hide');    
+    setHeightOfRow();
+  }
   else{
     displayError();
   }  
@@ -290,6 +323,8 @@ function deleteEvent(eventRightClicked){
     e.remove();
     resetTotalPresence(e);
   })
+
+  removeInfo(eventRightClicked.classNames[0],eventRightClicked.start,eventRightClicked.getResources()[0].id)
 
   dates.forEach(d => {
     if(![0,6].includes(d.getDay())){
@@ -315,12 +350,7 @@ function deleteEvent(eventRightClicked){
   $('#modalDelete').modal('hide');
 }
 
-function goToDate(date){
-  dt = new Date(date)
-  calendar.gotoDate(dt)
-  $('#goToDate').modal('hide')
-}
-
+// --------- Permet d'obtenir la longueur des evenements --------- //
 function getWidthOfEvent(){
   return width_event = $('.present').width();
 }
@@ -488,14 +518,15 @@ function deleteManagment(eventsToRemove){
   return _dates;
 }
 
+// --------- Permet de conserver la hauteur  des fc-widget-content --------- //
 function setHeightOfRow(){
-  let nbrOfRessources = calendar.getResources().length;
   let fc_widgets_content_div = $('.fc-widget-content:nth-child(1)')
-  for(i=1+nbrOfRessources;i<fc_widgets_content_div.length-1;i++){
+  for(i=1;i<fc_widgets_content_div.length-1;i++){
     $(fc_widgets_content_div[i].firstElementChild).css('height','38px');
   }
 }
 
+// --------- creer les evenement present | ferie | recap --------- //
 function createDefaultFromDates(events,dates,employes){
   dates.forEach(function(date){ 
     employes.forEach(emp => {
@@ -536,6 +567,7 @@ function createDefaultFromDates(events,dates,employes){
   calendar.addEventSource(events);
 }
 
+// --------- creer les evenement present | ferie --------- //
 function createDefaultFromDatesWithoutRecap(events,dates,employes){
   dates.forEach(function(date){ 
     employes.forEach(emp => {
@@ -565,6 +597,7 @@ function createDefaultFromDatesWithoutRecap(events,dates,employes){
   calendar.addEventSource(events);
 }
 
+// --------- creer les evenement recap --------- //
 function createDefaultRecap(dates){
   let events = []
   dates.forEach(date=>{
@@ -583,6 +616,7 @@ function createDefaultRecap(dates){
   calendar.addEventSource(events);
 }
 
+// --------- Gestion des informations des events --------- //
 function remplirModalInfoEvent(typeEvent,event,modal){
   typeEvent.forEach(function(info){
     date = new Date(info["dateDebut"]);
@@ -595,3 +629,193 @@ function remplirModalInfoEvent(typeEvent,event,modal){
   }) 
   modal.modal('show')
 }
+
+function pushInfos(classNames,info,form,emp_id){
+  if(classNames == 'demandeConge'){
+    form.each(function(){
+      let info_id = 'V'+$(this)[0].id.slice(4);
+      let val = $(this).val() ;
+      info[info_id] = val;
+    })
+    info['emp_id'] = emp_id;
+    demandeCongesInfos.push(info);
+  }
+  else if(classNames == 'demandeCongeValid'){
+    form.each(function(){
+      let info_id = $(this)[0].id;
+      let val = $(this).val() ;
+      info[info_id] = val;
+    })
+    info['emp_id'] = emp_id;
+    demandeCongeValidInfos.push(info);
+  }    
+  else{
+    form.each(function(){
+      let info_id = $(this)[0].id.slice(4);
+      let val = $(this).val() ;
+      info[info_id] = val;
+    })
+    info['emp_id'] = emp_id;
+    if(classNames == "conge")
+      congeInfos.push(info);
+    else if(classNames == "absence")
+      absenceInfos.push(info);
+    else if(classNames == "arret")
+      arretInfos.push(info);
+    else if(classNames == "teletravail")
+      teletravailInfos.push(info);
+    else if(classNames == "formation")
+      formationInfos.push(info);
+    else if(classNames == "rdv_pro")
+      rdv_proInfos.push(info);
+    else if(classNames == "recup")
+      recupInfos.push(info);
+  }
+}
+
+function modifInfos(classNames,form,start,emp_id){
+  if(classNames == "conge"){
+    congeInfos.find(infos => {
+      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
+        form.each(function(){
+            let info_id = $(this)[0].id.slice(1);
+            let val = $(this).val() ;
+            infos[info_id] = val;
+        })
+      }
+    })
+  }
+    
+  else if(classNames == "absence"){
+    absenceInfos.find(infos => {
+      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
+        form.each(function(){
+            let info_id = $(this)[0].id.slice(1);
+            let val = $(this).val() ;
+            infos[info_id] = val;
+        })
+      }
+    })
+  }
+    
+  else if(classNames == "arret"){
+    arretInfos.find(infos => {
+      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
+        form.each(function(){
+            let info_id = $(this)[0].id.slice(1);
+            let val = $(this).val() ;
+            infos[info_id] = val;
+        })
+      }
+    })
+  }
+    
+  else if(classNames == "teletravail"){
+    teletravailInfos.find(infos => {
+      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
+        form.each(function(){
+            let info_id = $(this)[0].id.slice(1);
+            let val = $(this).val() ;
+            infos[info_id] = val;
+        })
+      }
+    })
+  }
+    
+  else if(classNames == "formation"){
+    formationInfos.find(infos => {
+      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
+        form.each(function(){
+            let info_id = $(this)[0].id.slice(1);
+            let val = $(this).val() ;
+            infos[info_id] = val;
+        })
+      }
+    })
+  }
+    
+  else if(classNames == "rdv_pro"){
+    rdv_proInfos.find(infos => {
+      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
+        form.each(function(){
+            let info_id = $(this)[0].id.slice(1);
+            let val = $(this).val() ;
+            infos[info_id] = val;
+        })
+      }
+    })
+  }
+    
+  else if(classNames == "recup"){
+    recupInfos.find(infos => {
+      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
+        form.each(function(){
+            let info_id = $(this)[0].id.slice(1);
+            let val = $(this).val() ;
+            infos[info_id] = val;
+        })
+      }
+    })
+  }
+  
+  else if(classNames == "demandeCongeValid"){
+    demandeCongeValidInfos.find(infos => {
+      if(moment(infos.VdateDebut).isSame(start,'day') && infos.emp_id == emp_id){
+        form.each(function(){
+            let info_id = 'V'+$(this)[0].id.slice(1);
+            let val = $(this).val() ;
+            infos[info_id] = val;
+        })
+      }
+    })
+  } 
+}
+
+
+function removeInfo(classNames,start,emp_id){
+  let infoIndex; 
+  switch(classNames){
+    case "demandeConge": 
+      infoIndex = demandeCongesInfos.findIndex(info=> {return moment(info.VdateDebut).isSame(start,'day') && info.emp_id == emp_id});
+      demandeCongesInfos.splice(infoIndex,1);
+      break;
+    case "conge": 
+      infoIndex = congeInfos.findIndex(info=> {return moment(info.dateDebut).isSame(start,'day') && info.emp_id == emp_id});
+      congeInfos.splice(infoIndex,1);
+      break;
+    case "absence": 
+      infoIndex = absenceInfos.findIndex(info=> {return moment(info.dateDebut).isSame(start,'day') && info.emp_id == emp_id});
+      absenceInfos.splice(infoIndex,1);
+      break;
+    case "arret": 
+      infoIndex = arretInfos.findIndex(info=> {return moment(info.dateDebut).isSame(start,'day') && info.emp_id == emp_id});
+      arretInfos.splice(infoIndex,1);
+      break;
+    case "teletravail": 
+      infoIndex = teletravailInfos.findIndex(info=> {return moment(info.dateDebut).isSame(start,'day') && info.emp_id == emp_id});
+      teletravailInfos.splice(infoIndex,1);
+      break;
+    case "formation": 
+      infoIndex = formationInfos.findIndex(info=> {return moment(info.dateDebut).isSame(start,'day') && info.emp_id == emp_id});
+      formationInfos.splice(infoIndex,1);
+      break;
+    case 'rdv_pro': 
+      infoIndex = rdv_proInfos.findIndex(info=> {return moment(info.dateDebut).isSame(start,'day') && info.emp_id == emp_id});
+      rdv_proInfos.splice(infoIndex,1);
+      break;
+    case 'recup': 
+      infoIndex = recupInfos.findIndex(info=> {return moment(info.dateDebut).isSame(start,'day') && info.emp_id == emp_id});
+      recupInfos.splice(infoIndex,1);
+      break;
+    case 'demandeCongeValid': 
+      infoIndex = demandeCongeValidInfos.findIndex(info=> {return moment(info.VdateDebut).isSame(start,'day') && info.emp_id == emp_id});
+      demandeCongeValidInfos.splice(infoIndex,1);
+      break;
+  }
+}
+// --------- --------------------------- --------- //
+
+
+
+
+
