@@ -1,6 +1,7 @@
 var calendar ;
 var demandeCongesInfos = [], demandeCongeValidInfos = [], congeInfos = [], absenceInfos = [], arretInfos = [], teletravailInfos = [], formationInfos = [], rdv_proInfos = [], recupInfos = [];
 var width_event;
+var soldeConge = []; 
 
 document.addEventListener('DOMContentLoaded', function() {
     var Calendar = FullCalendar.Calendar;
@@ -24,16 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     }
-    // eventEls.forEach(function(eventEl) {
-    //   _id = eventEl.id;
-    //   new Draggable(eventEl, {
-    //     eventData: {
-    //       title: eventEl.innerText.trim(),
-    //       classNames:_id,
-    //       id:_id,
-    //     }
-    //   });
-    // });
 
     /* initialize the calendar
     -----------------------------------------------------------------*/
@@ -52,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     displayEventEnd: false,
     contentHeight: 'auto',
     resourceAreaWidth: '10%',
+    firstDay:1,
 
     customButtons: {
       myCustomButton: {
@@ -67,14 +59,26 @@ document.addEventListener('DOMContentLoaded', function() {
         type:'resourceTimeline',
         duration:{ months: 3 },
         slotDuration: { days:1 },
-        buttonText: 'vue 3 mois',
+        buttonText: '3 mois',
+      },
+      customWeek:{
+        type:'resourceTimeline',
+        duration:{ weeks: 1 },
+        slotDuration: { days:1 },
+        buttonText: '1 semaine',
+      },
+      customDay:{
+        type:'resourceTimeline',
+        duration:{ days: 1 },
+        slotDuration: { days:1 },
+        buttonText: '1 jour',
       }
     },
 
     header: {
       left: 'prev,next today, myCustomButton',
       center: 'title',
-      right: 'resourceTimeGridDay,custom3Month'
+      right: 'customDay,customWeek,custom3Month'
     },
 
     resourceLabelText: 'Date',
@@ -157,6 +161,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     eventReceive: function(e){
       $('#eventReceive').val(e.event);
+    },
+
+    eventDrop: function(e){
+      setHeightOfRow();
     },
 
     drop: function(arg) {  
@@ -265,89 +273,115 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       }
     },
-
-    // eventDrop: function(e){
-    //   if(e.event.getResources()[0].id != e.oldEvent.getResources()[0].id){
-    //     e.revert()
-    //   }
-    //   else if(e.event.classNames[0] == 'demandeConge' || e.event.classNames[0] == 'conge' || e.event.classNames[0] == 'congeDeny'){
-    //     e.revert()
-    //   }
-    //   else{
-    //     let eventAtDropPlace = calendar.getEvents().filter(event  => moment(event.start).isSame(moment(e.event.start),'day'))
-    //     eventAtDropPlace.splice(eventAtDropPlace.length - 1)
-    //     eventAtDropPlace = eventAtDropPlace.filter(event => event.getResources()[0].id == e.oldEvent.getResources()[0].id)
-    //     eventAtDropPlace[0].setDates(e.oldEvent.start,e.oldEvent.end);
-    //     eventAtDropPlace[0].setAllDay(true)
-    //     updateTotalPresenceAfterEventDrop(e.event,e.oldEvent)
-    //   }
-     
-    // },
     
-    eventResize: function(e){
-      console.log('coucou resize');
-    },
-
     eventAllow: function(dropLocation, draggedEvent){
       events = calendar.getEvents().filter( e => moment(e.start).isSame(moment(dropLocation.start),'day'))
       events = events.filter(e=>e.getResources()[0].id == dropLocation.resource.id)
       if(events.find(e=>e.classNames[0] != 'present') == undefined){
-        $('#dropLocation').val(dropLocation.resource.id);
-        return true;
+        if(draggedEvent.classNames[0] == 'demandeConge' || draggedEvent.classNames[0] == 'conge'){
+          if(soldeConge[draggedEvent.getResources()[0].id] > 0){
+            $('#dropLocation').val(dropLocation.resource.id);
+            setHeightOfRow();
+            $('#draggedEventIdEmp').val(draggedEvent.getResources()[0].id);
+            return true;
+          }
+          else{
+            setHeightOfRow();
+            $('#alertSoldeEmpty').css('opacity', 1).slideDown();
+            setTimeout(function(){
+              $('#alertSoldeEmpty').fadeTo(500, 0).slideUp(500)
+            }, 3000);
+            return false;
+          }
+        }
+      }
+      else if(events.find(e=>e.classNames[0] != 'specialPresent') == undefined){
+        if(draggedEvent.classNames[0] == 'demandeConge' || draggedEvent.classNames[0] == 'conge'){
+          if(soldeConge[draggedEvent.getResources()[0].id] > 0){
+            $('#dropLocation').val(dropLocation.resource.id);
+            setHeightOfRow();
+            $('#draggedEventIdEmp').val(draggedEvent.getResources()[0].id);
+            return true;
+          }
+          else{
+            setHeightOfRow();
+            $('#alertSoldeEmpty').css('opacity', 1).slideDown();
+            setTimeout(function(){
+              $('#alertSoldeEmpty').fadeTo(500, 0).slideUp(500)
+            }, 3000);
+            return false;
+          }
+        }
       }      
       else{
+        setHeightOfRow();
         return false;
-      }     
+      }   
+        
     },
 
   });
   calendar.render();
   createDefault();
   width_event = getWidthOfEvent();
+  initSoldeConge();
   $('.fc-next-button').click(function(){
     createDefault();
+    setHeightOfRow();
+  })
+  $('.fc-prev-button').click(function(){
+    setHeightOfRow();
+  })
+  $('.fc-customDay-button').click(function(){
+    setHeightOfRow();
+  })
+  $('.fc-customWeek-button').click(function(){
+    setHeightOfRow();
+  })
+  $('.fc-custom3Month-button').click(function(){
+    setHeightOfRow();
   })
 });
 
 $(document).ready(function(){
   $('#typeEvent').change(function(){
     switch($('#typeEvent option:selected').val()){
-      case 'DemandedeConge':
+      case 'demandeConge':
         $('#type-conge-content').show();
         $('#justification-content').show();
         $('#addToGoogleAgenda').show();
         break;
-      case 'Conge' :
+      case 'conge' :
         $('#type-conge-content').show();
         $('#justification-content').show();
         $('#addToGoogleAgenda').show();
         break;
-      case 'Absence' :
+      case 'absence' :
         $('#type-conge-content').hide();
         $('#justification-content').show();
         $('#addToGoogleAgenda').hide();
         break;
-      case 'Arret' :
+      case 'arret' :
         $('#type-conge-content').hide();
         $('#justification-content').show();
         $('#addToGoogleAgenda').hide();
         break;
-      case 'Teletravail' :
+      case 'teletravail' :
         $('#type-conge-content').hide();
         $('#justification-content').hide();
         $('#addToGoogleAgenda').show();
         break;
-      case 'Formation' :
+      case 'formation' :
         $('#type-conge-content').hide();
         $('#justification-content').hide();
         $('#addToGoogleAgenda').show();
         break;
-      case 'RDVpro' :
+      case 'rdv_pro' :
         $('#type-conge-content').hide();
         $('#justification-content').hide();
         $('#addToGoogleAgenda').show();
         break;
-      case 'Recup' :
+      case 'recup' :
         $('#type-conge-content').hide();
         $('#justification-content').hide();
         $('#addToGoogleAgenda').show();

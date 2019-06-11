@@ -35,12 +35,16 @@
 
   <!-- -------- Information Alert ---------- -->
   <div class="alert alert-danger fade show" role="alert" id='alertD' style="display:none;text-align: center">
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
       Vous ne pouvez pas faire cette action car <a href="#" class="alert-link">un événement</a> existe déjà aux dates demandées
   </div>
 
+  <div class="alert alert-danger fade show" role="alert" id='alertSoldeEmpty' style="display:none;text-align: center">
+    Votre <a href="#" class="alert-link">solde de congé</a> est épuisé
+  </div>  
+
+  <div class="alert alert-danger fade show" role="alert" id='alertSoldeInsuffisant' style="display:none;text-align: center">
+    Votre <a href="#" class="alert-link">solde de congé</a> est insuffisant : il vous reste <p id='soldeRestant' ></p> congés disponible
+  </div>  
   <!-- -------- Stockage event ---------- -->
   <div id='eventClicked' style="display:none"></div>  
   <div id='eventReceive' style='display: none'></div>
@@ -48,6 +52,7 @@
   <div id="dropLocation" style="display: none"></div>
   <div id="eventAtDropPlace" style="display: none"></div>
   <div id="eventDblClicked" style="display:none"></div>
+  <div id="draggedEventIdEmp" style="display: none"></div>
 
   <!-- -------- Evenements Exterieur ---------- -->
   <div id='external-events'>
@@ -788,7 +793,7 @@
             </button>
           </div>
           <div class="modal-body">
-            <p>Cette action supprimera tous les événements présents à cette/ces date(s)!</p> 
+            <p>Cette action supprimera l'événement!</p> 
             <p>Voulez-vous continuer?</p>
           </div>
           <div class="modal-footer">
@@ -849,14 +854,14 @@
                   <label for="typeEvent" class="col-sm-4">Type d'Evenement</label>
                   <div class="col-sm-8">
                       <select class="custom-select" id="typeEvent">
-                        <option selected value="DemandedeConge">Demande de Congé</option>
-                        <option value="Conge">Congé</option>
-                        <option value="Absence">Absence</option>
-                        <option value="Arret">Arrêt</option>
-                        <option value="Teletravail">Télétravail</option>
-                        <option value="Formation">Formation</option>
-                        <option value="RDVpro">RDV pro</option>
-                        <option value="Recup">Récup</option>
+                        <option selected value="demandeConge">Demande de Congé</option>
+                        <option value="conge">Congé</option>
+                        <option value="absence">Absence</option>
+                        <option value="arret">Arrêt</option>
+                        <option value="teletravail">Télétravail</option>
+                        <option value="formation">Formation</option>
+                        <option value="rdv_pro">RDV pro</option>
+                        <option value="recup">Récup</option>
                       </select>
                   </div>
                 </div>

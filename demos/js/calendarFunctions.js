@@ -48,62 +48,6 @@ function thisDateHasEvent(start,end,resourceId,isTrue = false){
   return eventsToRemove;
 }
 
-// // --------- Contraintes pour les Drops  --------- //
-// function constrainDrop(start,end,indexOE = null){
-//   let allEvents = calendar.getEvents();
-//   let eventsToReplace = []; 
-
-//   if(indexOE != null)
-//     allEvents.splice(indexOE,1)
-  
-//   if(moment(start).isSame(moment(end),'day')){
-//     index = allEvents.findIndex(event => moment(event.start).isSame(moment(start),'day'))
-//     if(allEvents[index].classNames[0] == 'present')
-//       eventsToReplace.push(allEvents[index]);
-//     else
-//       eventsToReplace.push(true)
-//   }
-
-//   else{
-//     end = moment(end).subtract(1, "days")._d;
-//     let dates = createDateArray(start,end)
-//     allEvents.findIndex(function(event){
-//       if(dates.find(date => moment(date).isSame(moment(event.start),'day'))){
-//         if(event.classNames[0] == "present")
-//           eventsToReplace.push(event)
-//         else  
-//           eventsToReplace.push(true)
-//       }
-//     })
-//   }
-//   return eventsToReplace;
-// }
-
-// // --------- Contraintes pour les resizes  --------- //
-// function constrainResize(days,start){
-//   let allEvents = calendar.getEvents();
-//   let eventsToRemove = [];
-
-//   allEvents.sort((a,b) => moment(a.start).dayOfYear() - moment(b.start).dayOfYear())
-
-//   if(days > 0){
-//     index = allEvents.findIndex(event => moment(event.start).isSame(moment(start),'day'))  
-//     for(i = 1; i <= days;i++){
-//       if(allEvents[index+i].classNames[0] === 'present')
-//         eventsToRemove.push(allEvents[index+i]);
-//       else{
-//         eventsToRemove.push(true);
-//         break;
-//       }        
-//     }
-//     return eventsToRemove;
-//   }
-
-//   else{
-//     return [];
-//   }
-// }
-
 // --------- Creer ID unique --------- //
 function create_unique_ID(){
   return '_' + Math.random().toString(36).substr(2, 9);
@@ -183,9 +127,12 @@ function createDefault(){
 function displayError(){
   $('#alertD').show();
   $('#modalDemandeConge').modal('hide');
+
+  $('#alertD').css('opacity', 1).slideDown();
   setTimeout(function(){
-    $('#alertD').fadeOut(3000);
-  },5000)         
+    $('#alertD').fadeTo(500, 0).slideUp(500)
+  }, 3000);
+        
   setTimeout(function(){
     $('#eventReceive').val().remove();
   },10);
@@ -264,14 +211,18 @@ function setHoursOfEvent(startHour,endHour,start,end,event,matineesIsChecked = f
 function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal){
   if(eventsToRemove.length>0 && eventsToRemove[eventsToRemove.length-1] != true && eventsToRemove.find(e => e == 'thisDateIsEmpty')!="thisDateIsEmpty"){
     event.setExtendedProp('ID',create_unique_ID());
+    // console.time("eventsToRemove");
     eventsToRemove.forEach(eventToRemove => eventToRemove.remove());
+    // console.timeEnd("eventsToRemove");
     if(moment(start).isSame(moment(end),'day')){
       if(!(startHour=='Matin' && endHour=='Soir')){
         addEventPresentIfMidDay(start,end,event,startHour,endHour);
       }
     }
     else{
+      // console.time('setHoursOfEvent');
       setHoursOfEvent(startHour,endHour,start,end,event);
+      // console.timeEnd('setHoursOfEvent');
       if(startHour == 'Après-midi' && endHour == 'Après-midi'){
         addSpecialEventPresentIfMidDay(start,end,event);
       }
@@ -281,10 +232,12 @@ function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal)
       else if(endHour == 'Après-midi')
         addEventPresentIfMidDay(end,end,event,startHour,endHour);
     }
+    // console.time("updateTotalPresenceAtDate"); 
     updateTotalPresenceAtDate(event);
+    // console.timeEnd("updateTotalPresenceAtDate");
     event.setProp('title','');
-    $(modal).modal('hide');    
     setHeightOfRow();
+    $(modal).modal('hide');    
   }
   else if(eventsToRemove.find(e => e == 'thisDateIsEmpty')){
     event.setExtendedProp('ID',create_unique_ID());
@@ -309,6 +262,8 @@ function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal)
     setHeightOfRow();
   }
   else{
+    setHeightOfRow();
+    $(modal).modal('hide');  
     displayError();
   }  
 }
@@ -326,6 +281,7 @@ function deleteEvent(eventRightClicked){
 
   removeInfo(eventRightClicked.classNames[0],eventRightClicked.start,eventRightClicked.getResources()[0].id)
 
+  let events = [];
   dates.forEach(d => {
     if(![0,6].includes(d.getDay())){
       event = {
@@ -334,7 +290,7 @@ function deleteEvent(eventRightClicked){
         allDay: true,
         resourceId: eventRightClicked.getResources()[0].id,
       };
-      calendar.addEvent(event)
+      events.push(event)
     }
     else{
       event = {
@@ -344,9 +300,10 @@ function deleteEvent(eventRightClicked){
         resourceId: eventRightClicked.getResources()[0].id,
         rendering:'background',
       };
-      calendar.addEvent(event)
+      events.push(event)
     } 
   }) 
+  calendar.addEventSource(events)
   $('#modalDelete').modal('hide');
 }
 
@@ -354,30 +311,6 @@ function deleteEvent(eventRightClicked){
 function getWidthOfEvent(){
   return width_event = $('.present').width();
 }
-
-// --------- Initialise les totaux de présence au chargement de la page --------- //
-// function initTotalPrecense(){
-//   let allEvents = calendar.getEvents().filter(e=> e.classNames[0] == 'present');
-//   let totalPresenceAtCurrentDate = calendar.getEvents().filter(e=>e.classNames[0] == 'recap');
-//   allEvents.sort((a,b) => a.start - b.start);
-//   totalPresenceAtCurrentDate.sort((a,b) => a.start - b.start);
-//   let currentDate = allEvents[0].start;
-//   let compteurPresence = 0;
-//   let iterator = 0;
-//   allEvents.forEach(e=>{
-//     if(moment(e.start).isSame(moment(currentDate),'day')){ 
-//       if(e.classNames[0] == 'present')
-//         compteurPresence++;
-//     }
-//     else{
-//       totalPresenceAtCurrentDate[iterator].setProp('title',compteurPresence.toString());
-//       totalPresenceAtCurrentDate[iterator].setExtendedProp('totPres',compteurPresence);
-//       currentDate = e.start;
-//       compteurPresence = 1;
-//       iterator++;
-//     }
-//   })
-// }
 
 // --------- Update les totaux de présence après l'ajout d'un événement --------- //
 function updateTotalPresenceAtDate(event){
@@ -405,14 +338,18 @@ function updateTotalPresenceAtDate(event){
       (moment(e.start).isSame(start,'day') && e.getResources()[0].id == event.getResources()[0].id && e.classNames[0] == 'specialPresent')
       || (moment(e.start).isSame(end,'day') && e.getResources()[0].id == event.getResources()[0].id && e.classNames[0] == 'specialPresent')
     )
+
     let dates = createDateArray(start,end);
+    
     dates.forEach(d=>{
       if(!calendar.getEvents().find(e => moment(e.start).isSame(d,'day') && e.classNames[0] == 'ferie_WE')){
         eventTotPresence = calendar.getEvents().filter(e=> e.classNames[0] == 'recap' && moment(e.start).isSame(d,'day'));
         if(eventTotPresence.length > 0){
           compteurPresence = eventTotPresence[0].extendedProps.totPres - 1;
+          console.time('test')
           eventTotPresence[0].setProp('title',compteurPresence);
           eventTotPresence[0].setExtendedProp('totPres',compteurPresence);
+          console.timeEnd('test')
         }
       }
     })
@@ -547,8 +484,7 @@ function createDefaultFromDates(events,dates,employes){
             allDay: true,
             resourceId:emp.id,
             rendering:'background'
-          }
-        
+          }        
         events.push(event)
       }
     })
@@ -559,8 +495,7 @@ function createDefaultFromDates(events,dates,employes){
           start: date,
           resourceId: 'recap-present',
           extendedProps:{'totPres':employes.length}
-        }
-      
+        }     
       events.push(event)
     }
   })
@@ -627,10 +562,10 @@ function remplirModalInfoEvent(typeEvent,event,modal){
       return; // ?
     }
   }) 
-  modal.modal('show')
+  modal.modal('show');
 }
 
-function pushInfos(classNames,info,form,emp_id){
+function pushInfos(classNames,info,form,emp_id,formIsinfo = false){
   if(classNames == 'demandeConge'){
     form.each(function(){
       let info_id = 'V'+$(this)[0].id.slice(4);
@@ -651,7 +586,11 @@ function pushInfos(classNames,info,form,emp_id){
   }    
   else{
     form.each(function(){
-      let info_id = $(this)[0].id.slice(4);
+      let info_id;
+      if(formIsinfo)
+        info_id = $(this)[0].id.slice(1);
+      else  
+        info_id = $(this)[0].id.slice(4);
       let val = $(this).val() ;
       info[info_id] = val;
     })
@@ -672,105 +611,6 @@ function pushInfos(classNames,info,form,emp_id){
       recupInfos.push(info);
   }
 }
-
-function modifInfos(classNames,form,start,emp_id){
-  if(classNames == "conge"){
-    congeInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }
-    
-  else if(classNames == "absence"){
-    absenceInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }
-    
-  else if(classNames == "arret"){
-    arretInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }
-    
-  else if(classNames == "teletravail"){
-    teletravailInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }
-    
-  else if(classNames == "formation"){
-    formationInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }
-    
-  else if(classNames == "rdv_pro"){
-    rdv_proInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }
-    
-  else if(classNames == "recup"){
-    recupInfos.find(infos => {
-      if(moment(infos.dateDebut).isSame(start,'day') && infos.emp_id == emp_id){
-        form.each(function(){
-            let info_id = $(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  }
-  
-  else if(classNames == "demandeCongeValid"){
-    demandeCongeValidInfos.find(infos => {
-      if(moment(infos.VdateDebut).isSame(start,'day') && infos.emp_id == emp_id){
-        form.each(function(){
-            let info_id = 'V'+$(this)[0].id.slice(1);
-            let val = $(this).val() ;
-            infos[info_id] = val;
-        })
-      }
-    })
-  } 
-}
-
 
 function removeInfo(classNames,start,emp_id){
   let infoIndex; 
@@ -816,6 +656,12 @@ function removeInfo(classNames,start,emp_id){
 // --------- --------------------------- --------- //
 
 
-
+// --------- Initialise solde de congé --------- //
+function initSoldeConge(){
+  calendar.getResources().forEach(r=>{
+    if(r.id != "recap-present")
+      soldeConge[r.id] = 1;
+  });
+}
 
 
