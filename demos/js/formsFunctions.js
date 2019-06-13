@@ -3,68 +3,71 @@ function confirm_form_typeC(form,nbrOfSlice,modal,idForm){
   $('.btn-primary').hide();
   $('.spinner-border').show();
   
-  let start = new Date(form[1].value);
-  let end = new Date(form[2].value);
-  let startHour = form[3].value;
-  let endHour = form[4].value;
-  let event = calendar.getEvents()[calendar.getEvents().length - 1];
-  let info = []
-  let nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1
+  setTimeout(function(){
+    let start = new Date(form[1].value);
+    let end = new Date(form[2].value);
+    let startHour = form[3].value;
+    let endHour = form[4].value;
+    let event = calendar.getEvents()[calendar.getEvents().length - 1];
+    let info = []
+    let nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1
+  
+    if(startHour == 'Après-midi')
+      nbrOfDays = nbrOfDays - 0.5
+    if(endHour == 'Après-midi')
+      nbrOfDays = nbrOfDays - 0.5
+  
+    if((start <= end) == false){
+      $('.invalid').show()
+      var element = document.getElementById(form[2].id);
+      element.classList.add('not-valid');
+    }
+  
+    else if(
+      (moment(start).isSame(moment(end),'day')) 
+      && (startHour =='Après-midi' && endHour == 'Après-midi')
+    ){
+      $('.isTheSame').show()
+      var element = document.getElementById(form[3].id);
+      element.classList.add('not-valid');
+      element = document.getElementById(form[4].id);
+      element.classList.add('not-valid');
+    }
+  
+    else if(soldeConge[$('#draggedEventIdEmp').val()] - nbrOfDays < 0){
+      event.remove();
+      setHeightOfRow();
+      modal.modal('hide');
+      $('#soldeRestant').html();
+      $('#soldeRestant').html(soldeConge[$('#draggedEventIdEmp').val()].toString());
+      $('#alertSoldeInsuffisant').css('opacity', 1).slideDown();
+      setTimeout(function(){
+        $('#alertSoldeInsuffisant').fadeTo(500, 0).slideUp(500)
+      }, 3000);
+    }
+  
+    else{
+      $('.invalid').hide();
+      $(form[2].id).removeClass('not-valid');
+      $('.isTheSame').hide();
+      $(form[3].id).removeClass('not-valid');
+      $(form[4].id).removeClass('not-valid');
+  
+      if(idForm == congeInfos)
+        soldeConge[$('#draggedEventIdEmp').val()] = soldeConge[$('#draggedEventIdEmp').val()] - nbrOfDays;
+  
+      form.each(function(){
+        let info_id = $(this)[0].id.slice(nbrOfSlice);
+        let val = $(this).val() ;
+        info[info_id] = val;
+      })
+      info['emp_id'] = event.getResources()[0].id;
+      idForm.push(info);
+      let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
+      EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal);
+    }
+  },10)
 
-  if(startHour == 'Après-midi')
-    nbrOfDays = nbrOfDays - 0.5
-  if(endHour == 'Après-midi')
-    nbrOfDays = nbrOfDays - 0.5
-
-  if((start <= end) == false){
-    $('.invalid').show()
-    var element = document.getElementById(form[2].id);
-    element.classList.add('not-valid');
-  }
-
-  else if(
-    (moment(start).isSame(moment(end),'day')) 
-    && (startHour =='Après-midi' && endHour == 'Après-midi')
-  ){
-    $('.isTheSame').show()
-    var element = document.getElementById(form[3].id);
-    element.classList.add('not-valid');
-    element = document.getElementById(form[4].id);
-    element.classList.add('not-valid');
-  }
-
-  else if(soldeConge[$('#draggedEventIdEmp').val()] - nbrOfDays < 0){
-    event.remove();
-    setHeightOfRow();
-    modal.modal('hide');
-    $('#soldeRestant').html();
-    $('#soldeRestant').html(soldeConge[$('#draggedEventIdEmp').val()].toString());
-    $('#alertSoldeInsuffisant').css('opacity', 1).slideDown();
-    setTimeout(function(){
-      $('#alertSoldeInsuffisant').fadeTo(500, 0).slideUp(500)
-    }, 3000);
-  }
-
-  else{
-    $('.invalid').hide();
-    $(form[2].id).removeClass('not-valid');
-    $('.isTheSame').hide();
-    $(form[3].id).removeClass('not-valid');
-    $(form[4].id).removeClass('not-valid');
-
-    if(idForm == congeInfos)
-      soldeConge[$('#draggedEventIdEmp').val()] = soldeConge[$('#draggedEventIdEmp').val()] - nbrOfDays;
-
-    form.each(function(){
-      let info_id = $(this)[0].id.slice(nbrOfSlice);
-      let val = $(this).val() ;
-      info[info_id] = val;
-    })
-    info['emp_id'] = event.getResources()[0].id;
-    idForm.push(info);
-    let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
-    EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal);
-  }
 }
 
 // --------- confirmation event Absence | Arret | Teletravail | Formation | RDV-Pro | Recup --------- //
@@ -72,47 +75,49 @@ function confirm_form_event(form,nbrOfSlice,modal,idForm){
   $('.btn-primary').hide();
   $('.spinner-border').show();
 
-  let start = new Date(form[0].value);
-  let end = new Date(form[1].value);
-  let startHour = form[2].value;
-  let endHour = form[3].value;
-  let event = calendar.getEvents()[calendar.getEvents().length - 1];
-  let info = [];
+  setTimeout(function(){
+    let start = new Date(form[0].value);
+    let end = new Date(form[1].value);
+    let startHour = form[2].value;
+    let endHour = form[3].value;
+    let event = calendar.getEvents()[calendar.getEvents().length - 1];
+    let info = [];
+    
+    if((start <= end) == false){
+      $('.invalid').show()
+      let element = document.getElementById(form[1].id);
+      element.classList.add('not-valid');
+    }
   
-  if((start <= end) == false){
-    $('.invalid').show()
-    let element = document.getElementById(form[1].id);
-    element.classList.add('not-valid');
-  }
-
-  else if(
-    (moment(start).isSame(moment(end),'day')) 
-    && (startHour =='Après-midi' && endHour == 'Après-midi')
-  ){
-    $('.isTheSame').show()
-    let element = document.getElementById(form[2].id);
-    element.classList.add('not-valid');
-    element = document.getElementById(form[3].id);
-    element.classList.add('not-valid');
-  }
-
-  else{
-    $('.invalid').hide();
-    $(form[1].id).removeClass('not-valid');
-    $('.isTheSame').hide();
-    $(form[2].id).removeClass('not-valid');
-    $(form[3].id).removeClass('not-valid');
-
-    form.each(function(){
-      let info_id = $(this)[0].id.slice(nbrOfSlice);
-      let val = $(this).val() ;
-      info[info_id] = val;
-    })
-    info['emp_id'] = event.getResources()[0].id;
-    idForm.push(info);
-    let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
-    EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal);
-  }
+    else if(
+      (moment(start).isSame(moment(end),'day')) 
+      && (startHour =='Après-midi' && endHour == 'Après-midi')
+    ){
+      $('.isTheSame').show()
+      let element = document.getElementById(form[2].id);
+      element.classList.add('not-valid');
+      element = document.getElementById(form[3].id);
+      element.classList.add('not-valid');
+    }
+  
+    else{
+      $('.invalid').hide();
+      $(form[1].id).removeClass('not-valid');
+      $('.isTheSame').hide();
+      $(form[2].id).removeClass('not-valid');
+      $(form[3].id).removeClass('not-valid');
+  
+      form.each(function(){
+        let info_id = $(this)[0].id.slice(nbrOfSlice);
+        let val = $(this).val() ;
+        info[info_id] = val;
+      })
+      info['emp_id'] = event.getResources()[0].id;
+      idForm.push(info);
+      let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
+      EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal);
+    }
+  },10)
 }
 
 // --------- Validation formulaire d'ajout d'événement --------- //
@@ -120,72 +125,75 @@ function confirm_form_addEvent(){
   $('.spinner-border').show();
   $('.btn-primary').hide();
 
-  let start = new Date($('#addEdateDebut').val());
-  let end = new Date($('#addEdateFin').val());
-  let startHour = $('#addEheureDebut').val();
-  let endHour = $('#addEheureFin').val();
-  let _classNames = $('#typeEvent option:selected').val();
-  let info = [];
-  let nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1
-
-  if(_classNames == 'demandeConge' || _classNames == 'conge'){
-    if(startHour == 'Après-midi')
-      nbrOfDays = nbrOfDays - 0.5
-    if(endHour == 'Après-midi')
-      nbrOfDays = nbrOfDays - 0.5
-  }
-
-  if((start <= end) == false){
-    $('.invalid').show()
-    let element = document.getElementById('addEdateFin');
-    element.classList.add('not-valid');
-  }
-
-  else if(
-    (moment(start).isSame(moment(end),'day')) 
-    && (startHour =='Après-midi' && endHour == 'Après-midi')
-  ){
-    $('.isTheSame').show()
-    let element = document.getElementById('addEheureDebut');
-    element.classList.add('not-valid');
-    element = document.getElementById('addEheureFin');
-    element.classList.add('not-valid');
-  }
-
-  else if((_classNames == 'demandeConge' || _classNames == 'conge') && soldeConge[$("#eventDblClicked").val().getResources()[0].id] - nbrOfDays < 0){
-    $('#modalAddEvent').modal('hide');
-    $('#soldeRestant').html();
-    $('#soldeRestant').html(soldeConge[$("#eventDblClicked").val().getResources()[0].id].toString());
-    $('#alertSoldeInsuffisant').css('opacity', 1).slideDown();
-    setTimeout(function(){
-      $('#alertSoldeInsuffisant').fadeTo(500, 0).slideUp(500)
-    }, 3000);
-  }
-
-  else{
-    $('.invalid').hide();
-    $('#addEdateFin').removeClass('not-valid');
-    $('.isTheSame').hide();
-    $('#addEheureDebut').removeClass('not-valid');
-    $('#addEheureFin').removeClass('not-valid');
-
-    if(_classNames == 'conge')
-      soldeConge[$("#eventDblClicked").val().getResources()[0].id] = soldeConge[$("#eventDblClicked").val().getResources()[0].id] - nbrOfDays;
-    
-    pushInfos(_classNames,info,$("form#form-addEvent :input"),$("#eventDblClicked").val().getResources()[0].id);
-
-    let event = {
-      classNames: _classNames,
-      start: start,
-      end: end,
-      resourceId: $("#eventDblClicked").val().getResources()[0].id,
-    };
-    
-    calendar.addEvent(event);
-    event = calendar.getEvents()[calendar.getEvents().length - 1];
-    let eventsToRemove = thisDateHasEvent(start,end,$("#eventDblClicked").val().getResources()[0].id,true);
-    EventsManagment(eventsToRemove,startHour,endHour,start,end,event,'#modalAddEvent');
-  }  
+  setTimeout(function(){
+    let start = new Date($('#addEdateDebut').val());
+    let end = new Date($('#addEdateFin').val());
+    let startHour = $('#addEheureDebut').val();
+    let endHour = $('#addEheureFin').val();
+    let _classNames = $('#typeEvent option:selected').val();
+    let info = [];
+    let nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1
+  
+    if(_classNames == 'demandeConge' || _classNames == 'conge'){
+      if(startHour == 'Après-midi')
+        nbrOfDays = nbrOfDays - 0.5
+      if(endHour == 'Après-midi')
+        nbrOfDays = nbrOfDays - 0.5
+    }
+  
+    if((start <= end) == false){
+      $('.invalid').show()
+      let element = document.getElementById('addEdateFin');
+      element.classList.add('not-valid');
+    }
+  
+    else if(
+      (moment(start).isSame(moment(end),'day')) 
+      && (startHour =='Après-midi' && endHour == 'Après-midi')
+    ){
+      $('.isTheSame').show()
+      let element = document.getElementById('addEheureDebut');
+      element.classList.add('not-valid');
+      element = document.getElementById('addEheureFin');
+      element.classList.add('not-valid');
+    }
+  
+    else if((_classNames == 'demandeConge' || _classNames == 'conge') && soldeConge[$("#eventDblClicked").val().getResources()[0].id] - nbrOfDays < 0){
+      $('#modalAddEvent').modal('hide');
+      $('#soldeRestant').html();
+      $('#soldeRestant').html(soldeConge[$("#eventDblClicked").val().getResources()[0].id].toString());
+      $('#alertSoldeInsuffisant').css('opacity', 1).slideDown();
+      setTimeout(function(){
+        $('#alertSoldeInsuffisant').fadeTo(500, 0).slideUp(500)
+      }, 3000);
+    }
+  
+    else{
+      $('.invalid').hide();
+      $('#addEdateFin').removeClass('not-valid');
+      $('.isTheSame').hide();
+      $('#addEheureDebut').removeClass('not-valid');
+      $('#addEheureFin').removeClass('not-valid');
+  
+      if(_classNames == 'conge')
+        soldeConge[$("#eventDblClicked").val().getResources()[0].id] = soldeConge[$("#eventDblClicked").val().getResources()[0].id] - nbrOfDays;
+      
+      pushInfos(_classNames,info,$("form#form-addEvent :input"),$("#eventDblClicked").val().getResources()[0].id);
+  
+      let event = {
+        classNames: _classNames,
+        start: start,
+        end: end,
+        resourceId: $("#eventDblClicked").val().getResources()[0].id,
+      };
+      
+      calendar.addEvent(event);
+      event = calendar.getEvents()[calendar.getEvents().length - 1];
+      let eventsToRemove = thisDateHasEvent(start,end,$("#eventDblClicked").val().getResources()[0].id,true);
+      EventsManagment(eventsToRemove,startHour,endHour,start,end,event,'#modalAddEvent');
+    }
+  },10)
+  
 }
 
 // --------- permet de passer de la description à la modification --------- //
@@ -203,52 +211,81 @@ function valid_modif_event(event){
   $('.spinner-border').show();
   $('.btn-primary').hide();
 
-  let start = event.start;
-  let end = event.end;
-  if(event.end == null){
-    end = event.start;
-  }
-  if( !moment($('#IdateDebut').val()).isSame(start,'day') || !moment($('#IdateFin').val()).isSame(end,'day') ){
-    if(event.classNames[0] == 'conge' || event.classNames[0] == 'demandeCongeValid'){
-      modif_event_typeC(event);
-    }  
+  setTimeout(function(){
+    let start = event.start;
+    let end = event.end;
+    if(event.end == null){
+      end = event.start;
+    }
+    let startHour,endHour;
+    if(moment(start).hour() == 9)
+      startHour = 'Matin'
+    else
+      startHour = 'Après-midi'
+
+    if(moment(end).hour() == 18)
+      endHour = 'Soir'
+    else
+      endHour = 'Après-midi'
+
+    if( !moment($('#IdateDebut').val()).isSame(start,'day') || !moment($('#IdateFin').val()).isSame(end,'day')){
+      if(event.classNames[0] == 'conge' || event.classNames[0] == 'demandeCongeValid'){
+        modif_event_typeC(event);
+      }  
+      else{
+        modif_event(event);
+      }
+    }
+
+    else if( (moment($('#IdateDebut').val()).isSame(start,'day') && $('#IheureDebut').val() != startHour) || (moment($('#IdateFin').val()).isSame(end,'day') && $('#IheureFin').val() != endHour) ){
+      if(event.classNames[0] == 'conge' || event.classNames[0] == 'demandeCongeValid'){
+        if(moment(start).hour() == 13)
+          modif_event_typeC(event,false,true);
+        else if(moment(end).hour() == 12)
+          modif_event_typeC(event,false,true);
+        else
+          modif_event_typeC(event,true,false);
+      }  
+      else{
+        modif_event(event);
+      }
+    }
+
     else{
-      modif_event(event);
-    }
-  }
-  
-  else{
-    switch(event.classNames[0]){
-      case 'conge':
-        congeInfos.splice(congeInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
-        break;
-      case 'demandeCongeValid':
-        demandeCongeValidInfos.splice(demandeCongeValidInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
-        break;
-      case 'absence':
-        absenceInfos.splice(absenceInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
-        break;
-      case "arret":
-        arretInfos.splice(arretInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
-        break;
-      case "teletravail":
-        teletravailInfos.splice(teletravailInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
-        break;
-      case "formation" :
-        formationInfos.splice(formationInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
-        break;
-      case 'rdv_pro':
-        rdv_proInfos.splice(rdv_proInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
-        break;
-      case 'recup':
-        recupInfos.splice(recupInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
-        break;
-    }
-    pushInfos(event.classNames[0],info = [],$("form#form-info-event :input"),event.getResources()[0].id,true);
-    cancelModalInfoEvent();
-    $('.spinner-border').show();
-    $('.btn-primary').hide();
-  }   
+      switch(event.classNames[0]){
+        case 'conge':
+          congeInfos.splice(congeInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+          break;
+        case 'demandeCongeValid':
+          demandeCongeValidInfos.splice(demandeCongeValidInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+          break;
+        case 'absence':
+          absenceInfos.splice(absenceInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+          break;
+        case "arret":
+          arretInfos.splice(arretInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+          break;
+        case "teletravail":
+          teletravailInfos.splice(teletravailInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+          break;
+        case "formation" :
+          formationInfos.splice(formationInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+          break;
+        case 'rdv_pro':
+          rdv_proInfos.splice(rdv_proInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+          break;
+        case 'recup':
+          recupInfos.splice(recupInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+          break;
+      }
+      pushInfos(event.classNames[0],info = [],$("form#form-info-event :input"),event.getResources()[0].id,true);
+      cancelModalInfoEvent();
+      $('.spinner-border').hide();
+      $('.btn-primary').show();
+      $('#valid-modif-event-btn').hide();
+    }   
+  },10)
+
 }
 
 // --------- Permet de se rendre à une date --------- //
@@ -306,8 +343,8 @@ function cancel(event){
 
   event.remove();
   setHeightOfRow();
-  $('.spinner-border').show();
-  $('.btn-primary').hide();
+  $('.spinner-border').hide();
+  $('.btn-primary').show();
 }
 
 function cancelModalInfoEvent(){
@@ -348,71 +385,74 @@ function validation_demande_conge(event){
   $('.spinner-border').show();
   $('.btn-primary').hide();
 
-  let start = new Date($('#VdateDebut').val());
-  let end = new Date($('#VdateFin').val());
-  let startHour = $('#VheureDebut').val();
-  let endHour = $('#VheureFin').val();
-  let nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1
+  setTimeout(function(){
+    let start = new Date($('#VdateDebut').val());
+    let end = new Date($('#VdateFin').val());
+    let startHour = $('#VheureDebut').val();
+    let endHour = $('#VheureFin').val();
+    let nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1
+  
+    if(startHour == 'Après-midi')
+      nbrOfDays = nbrOfDays - 0.5
+    if(endHour == 'Après-midi')
+      nbrOfDays = nbrOfDays - 0.5
+  
+    if((start <= end) == false){
+      $('.invalid').show()
+      let element = document.getElementById('VdateFin');
+      element.classList.add('not-valid');
+    }
+  
+    else if(
+      (moment(start).isSame(moment(end),'day')) 
+      && (startHour =='Après-midi' && endHour == 'Après-midi')
+    ){
+      $('.isTheSame').show()
+      let element = document.getElementById('VheureDebut');
+      element.classList.add('not-valid');
+      element = document.getElementById('VheureFin');
+      element.classList.add('not-valid');
+    }
+  
+    else if(soldeConge[event.getResources()[0].id] - nbrOfDays < 0){
+      $('#modalValidationConge').modal('hide');
+      $('#soldeRestant').html();
+      $('#soldeRestant').html(soldeConge[event.getResources()[0].id].toString());
+      $('#alertSoldeInsuffisant').css('opacity', 1).slideDown();
+      setTimeout(function(){
+        $('#alertSoldeInsuffisant').fadeTo(500, 0).slideUp(500)
+      }, 3000);
+    }
+  
+    else{
+      $('.invalid').hide();
+      $('#VdateFin').removeClass('not-valid');
+      $('.isTheSame').hide();
+      $('#VheureDebut').removeClass('not-valid');
+      $('#VheureFin').removeClass('not-valid');
+  
+      let resetEvent;
+      let _extendedProps;
+      resetEvent = {
+        classNames:['demandeCongeValid','zIndex'],
+        extendedProps: {'ID':event.extendedProps.ID},
+        start:start,
+        end:end,
+        resourceId:event.getResources()[0].id,
+      };
+  
+      soldeConge[event.getResources()[0].id] = soldeConge[event.getResources()[0].id] - nbrOfDays;
+      _extendedProps = event.extendedProps.ID;
+      deleteEvent(event,true);
+      calendar.addEvent(resetEvent);
+      resetEvent = calendar.getEvents()[calendar.getEvents().length-1]
+      resetEvent.setExtendedProp('_ID',_extendedProps);
+      pushInfos(resetEvent.classNames[0],info = [],$("form#form-validation-conge :input"),resetEvent.getResources()[0].id)
+      let eventsToRemove = thisDateHasEvent(start,end,resetEvent.getResources()[0].id,true);
+      EventsManagment(eventsToRemove,startHour,endHour,start,end,resetEvent,$('#modalValidationConge'));
+    }
+  },10)
 
-  if(startHour == 'Après-midi')
-    nbrOfDays = nbrOfDays - 0.5
-  if(endHour == 'Après-midi')
-    nbrOfDays = nbrOfDays - 0.5
-
-  if((start <= end) == false){
-    $('.invalid').show()
-    let element = document.getElementById('VdateFin');
-    element.classList.add('not-valid');
-  }
-
-  else if(
-    (moment(start).isSame(moment(end),'day')) 
-    && (startHour =='Après-midi' && endHour == 'Après-midi')
-  ){
-    $('.isTheSame').show()
-    let element = document.getElementById('VheureDebut');
-    element.classList.add('not-valid');
-    element = document.getElementById('VheureFin');
-    element.classList.add('not-valid');
-  }
-
-  else if(soldeConge[event.getResources()[0].id] - nbrOfDays < 0){
-    $('#modalValidationConge').modal('hide');
-    $('#soldeRestant').html();
-    $('#soldeRestant').html(soldeConge[event.getResources()[0].id].toString());
-    $('#alertSoldeInsuffisant').css('opacity', 1).slideDown();
-    setTimeout(function(){
-      $('#alertSoldeInsuffisant').fadeTo(500, 0).slideUp(500)
-    }, 3000);
-  }
-
-  else{
-    $('.invalid').hide();
-    $('#VdateFin').removeClass('not-valid');
-    $('.isTheSame').hide();
-    $('#VheureDebut').removeClass('not-valid');
-    $('#VheureFin').removeClass('not-valid');
-
-    let resetEvent;
-    let _extendedProps;
-    resetEvent = {
-      classNames:['demandeCongeValid','zIndex'],
-      extendedProps: {'ID':event.extendedProps.ID},
-      start:start,
-      end:end,
-      resourceId:event.getResources()[0].id,
-    };
-
-    soldeConge[event.getResources()[0].id] = soldeConge[event.getResources()[0].id] - nbrOfDays;
-    _extendedProps = event.extendedProps.ID;
-    deleteEvent(event);
-    calendar.addEvent(resetEvent);
-    resetEvent = calendar.getEvents()[calendar.getEvents().length-1]
-    resetEvent.setExtendedProp('_ID',_extendedProps);
-    pushInfos(resetEvent.classNames[0],info = [],$("form#form-validation-conge :input"),resetEvent.getResources()[0].id)
-    let eventsToRemove = thisDateHasEvent(start,end,resetEvent.getResources()[0].id,true);
-    EventsManagment(eventsToRemove,startHour,endHour,start,end,resetEvent,$('#modalValidationConge'));
-  }
 }
 
 // --------- Deny d'un Congé --------- //
@@ -452,7 +492,7 @@ function modif_event(event){
       resourceId:event.getResources()[0].id,
     };
     _extendedProps = event.extendedProps.ID;
-    deleteEvent(event);
+    deleteEvent(event,true);
     calendar.addEvent(resetEvent);
     
     resetEvent = calendar.getEvents()[calendar.getEvents().length-1]
@@ -465,51 +505,62 @@ function modif_event(event){
   }
 }
 
-function modif_event_typeC(event){
-  let start = new Date($('#IdateDebut').val());
-  let end = new Date($('#IdateFin').val());
-  let startHour = $('#IheureDebut').val();
-  let endHour = $('#IheureFin').val();
-  let nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1
-  let _classNames = event.classNames[0];
-  let inputsValid = checkIfInputValid(start,end,startHour,endHour);
+function modif_event_typeC(event,singleDayToMidDay = false,midDayToFullDay = false){
 
-  if(startHour == 'Après-midi')
-    nbrOfDays = nbrOfDays - 0.5
-  if(endHour == 'Après-midi')
-    nbrOfDays = nbrOfDays - 0.5
+    let start = new Date($('#IdateDebut').val());
+    let end = new Date($('#IdateFin').val());
+    let startHour = $('#IheureDebut').val();
+    let endHour = $('#IheureFin').val();
+    let eventEnd = event.end;
+    if(event.end == null){
+      eventEnd = event.start;
+    }
+    let nbrOfDays = (moment(end).dayOfYear() - moment(start).dayOfYear() ) - (moment(eventEnd).dayOfYear() - moment(event.start).dayOfYear());
+    let _classNames = event.classNames[0];
+    let inputsValid = checkIfInputValid(start,end,startHour,endHour);
   
-  let hasenoughCongeAvailable = checkSolde(event,nbrOfDays);
-
-  if(inputsValid && hasenoughCongeAvailable){
-    $('.invalid').hide();
-    $('#IdateFin').removeClass('not-valid');
-    $('.isTheSame').hide();
-    $('#IheureDebut').removeClass('not-valid');
-    $('#IheureFin').removeClass('not-valid');
-
-    if(_classNames == 'conge')
-      soldeConge[event.getResources()[0].id] = soldeConge[event.getResources()[0].id] - nbrOfDays;
-
-    let resetEvent;
-    let _extendedProps;
-    resetEvent = {
-      classNames : event.classNames[0],
-      start:start,
-      end:end,
-      resourceId:event.getResources()[0].id,
-    };
-    _extendedProps = event.extendedProps.ID;
-    deleteEvent(event);
-    calendar.addEvent(resetEvent);
+    if( (startHour == 'Après-midi' && moment(start).isBefore(event.start,'day')) || midDayToFullDay)
+      nbrOfDays = nbrOfDays - 0.5
+    if( (endHour == 'Après-midi' && moment(end).isAfter(eventEnd,'day')))
+      nbrOfDays = nbrOfDays - 0.5
+    if((startHour == 'Après-midi' && moment(start).isAfter(event.start,'day')) || singleDayToMidDay)
+      nbrOfDays = nbrOfDays + 0.5
+    if((endHour == 'Après-midi' && moment(end).isBefore(eventEnd,'day')))
+      nbrOfDays = nbrOfDays + 0.5
     
-    resetEvent = calendar.getEvents()[calendar.getEvents().length-1]
-    resetEvent.setExtendedProp('_ID',_extendedProps);
-    pushInfos(resetEvent.classNames[0],info = [],$("form#form-info-event :input"),resetEvent.getResources()[0].id,true)
-    let eventsToRemove = thisDateHasEvent(start,end,resetEvent.getResources()[0].id,true);
-    EventsManagment(eventsToRemove,startHour,endHour,start,end,resetEvent,$('#modalInfoEvent'));
-    cancelModalInfoEvent(); 
-  }
+
+    let hasenoughCongeAvailable = checkSolde(event,nbrOfDays);
+  
+    if(inputsValid && hasenoughCongeAvailable){
+      $('.invalid').hide();
+      $('#IdateFin').removeClass('not-valid');
+      $('.isTheSame').hide();
+      $('#IheureDebut').removeClass('not-valid');
+      $('#IheureFin').removeClass('not-valid');
+  
+      if(_classNames == 'conge')
+        soldeConge[event.getResources()[0].id] = soldeConge[event.getResources()[0].id] - nbrOfDays;
+  
+      let resetEvent;
+      let _extendedProps;
+      resetEvent = {
+        classNames : event.classNames[0],
+        start:start,
+        end:end,
+        resourceId:event.getResources()[0].id,
+      };
+      _extendedProps = event.extendedProps.ID;
+      deleteEvent(event,true);
+      calendar.addEvent(resetEvent);
+      
+      resetEvent = calendar.getEvents()[calendar.getEvents().length-1]
+      resetEvent.setExtendedProp('_ID',_extendedProps);
+      pushInfos(resetEvent.classNames[0],info = [],$("form#form-info-event :input"),resetEvent.getResources()[0].id,true)
+      let eventsToRemove = thisDateHasEvent(start,end,resetEvent.getResources()[0].id,true);
+      EventsManagment(eventsToRemove,startHour,endHour,start,end,resetEvent,$('#modalInfoEvent'));
+      cancelModalInfoEvent(); 
+    }
+
 }
 
 function checkIfInputValid(start,end,startHour,endHour){
@@ -517,8 +568,9 @@ function checkIfInputValid(start,end,startHour,endHour){
     $('.invalid').show()
     let element = document.getElementById('IdateFin');
     element.classList.add('not-valid');
-    $('.spinner-border').show();
-    $('.btn-primary').hide();
+    $('.spinner-border').hide();
+    $('.btn-primary').show();
+    $('#valid-modif-event-btn').hide();
     return false;
   }
 
@@ -531,8 +583,9 @@ function checkIfInputValid(start,end,startHour,endHour){
     element.classList.add('not-valid');
     element = document.getElementById('IheureFin');
     element.classList.add('not-valid');
-    $('.spinner-border').show();
-    $('.btn-primary').hide();
+    $('.spinner-border').hide();
+    $('.btn-primary').show();
+    $('#valid-modif-event-btn').hide();
     return false;
   }
   else  
@@ -548,8 +601,9 @@ function checkSolde(event,nbrOfDays){
     setTimeout(function(){
       $('#alertSoldeInsuffisant').fadeTo(500, 0).slideUp(500)
     }, 3000);
-    $('.spinner-border').show();
-    $('.btn-primary').hide();
+    $('.spinner-border').hide();
+    $('.btn-primary').show();
+    $('#valid-modif-event-btn').hide();
     return false;
   }
   else

@@ -211,6 +211,7 @@ function setHoursOfEvent(startHour,endHour,start,end,event,matineesIsChecked = f
 function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal){
   if(eventsToRemove.length>0 && eventsToRemove[eventsToRemove.length-1] != true && eventsToRemove.find(e => e == 'thisDateIsEmpty')!="thisDateIsEmpty"){
     event.setExtendedProp('ID',create_unique_ID());
+    setHoursOfEvent(startHour,endHour,start,end,event);
     // console.time("eventsToRemove");
     eventsToRemove.forEach(eventToRemove => eventToRemove.remove());
     // console.timeEnd("eventsToRemove");
@@ -221,7 +222,7 @@ function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal)
     }
     else{
       // console.time('setHoursOfEvent');
-      setHoursOfEvent(startHour,endHour,start,end,event);
+      
       // console.timeEnd('setHoursOfEvent');
       if(startHour == 'Après-midi' && endHour == 'Après-midi'){
         addSpecialEventPresentIfMidDay(start,end,event);
@@ -267,17 +268,18 @@ function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal)
     displayError();
   }
   $('.spinner-border').hide();
-  $('.btn-primary').show();  
+  $('.btn-primary').show();
+  $('#valid-modif-event-btn').hide();
 }
 
 // --------- Supprimer un évènement (sauf évenement present) --------- //
-function deleteEvent(eventRightClicked){
+function deleteEvent(eventRightClicked, isAmodif = false){
   let _ID = eventRightClicked.extendedProps.ID; 
   let eventsToRemove = calendar.getEvents().filter(e => e.extendedProps.ID == _ID);
   let dates = deleteManagment(eventsToRemove);
 
-  if((eventRightClicked.classNames[0] == 'conge' || eventRightClicked.classNames[0] == 'demandeCongeValid') && moment(eventRightClicked.start).isAfter(moment())){
-    restoreSoldeConge(eventRightClicked.getResources()[0].id,eventRightClicked.start,eventRightClicked.end)
+  if( (eventRightClicked.classNames[0] == 'conge' || eventRightClicked.classNames[0] == 'demandeCongeValid') && moment(eventRightClicked.start).isAfter(moment()) && !isAmodif){
+    restoreSoldeConge(eventRightClicked.getResources()[0].id,eventRightClicked.start,eventRightClicked.end,calendar.getEvents().filter(e=>e.extendedProps.ID = _ID && e.classNames[0] == 'specialPresent').length)
   }
 
   eventsToRemove.forEach(e => {
@@ -666,16 +668,17 @@ function removeInfo(classNames,start,emp_id){
 function initSoldeConge(){
   calendar.getResources().forEach(r=>{
     if(r.id != "recap-present")
-      soldeConge[r.id] = 1;
+      soldeConge[r.id] = 5;
   });
 }
 
 // --------- rend le nombre de congés à l'employé correspondant l'event supprimé si celui-ci est avant now() --------- //
-function restoreSoldeConge(emp_id,start,end){
+function restoreSoldeConge(emp_id,start,end,nbrOfSpecialPresent){
   let nbrOfDays;
   if(end == null)
-    nbrOfDays = 1
+    nbrOfDays = 1;
   else
-    nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1
+    nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1;
+  nbrOfDays = nbrOfDays - nbrOfSpecialPresent * 0.5;
   soldeConge[emp_id] = soldeConge[emp_id] + nbrOfDays;
 }
