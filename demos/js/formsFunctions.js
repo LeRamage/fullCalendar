@@ -1,75 +1,12 @@
-// --------- Confirmation du formulaire de Demande de Congé --------- //
-function confirm_form_Demandeconge(){
-
-    let start = new Date($('#dateDebut').val());
-    let end = new Date($('#dateFin').val());
-    let startHour = $('#heureDebut').val();
-    let endHour = $('#heureFin').val();
-    let event = calendar.getEvents()[calendar.getEvents().length - 1];
-    let info = [];
-    let nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1
-
-    if(startHour == 'Après-midi')
-      nbrOfDays = nbrOfDays - 0.5
-    if(endHour == 'Après-midi')
-      nbrOfDays = nbrOfDays - 0.5
-
-    if((start <= end) == false){
-      $('.invalid').show()
-      let element = document.getElementById('dateFin');
-      element.classList.add('not-valid');
-    }
-    
-    else if(
-      (moment(start).isSame(moment(end),'day')) 
-      && (startHour =='Après-midi' && endHour == 'Après-midi')
-    ){
-      $('.isTheSame').show()
-      let element = document.getElementById('heureDebut');
-      element.classList.add('not-valid');
-      element = document.getElementById('heureFin');
-      element.classList.add('not-valid');
-    }
-
-    else if(soldeConge[$('#draggedEventIdEmp').val()] - nbrOfDays < 0){
-      event.remove();
-      setHeightOfRow();
-      $('#modalDemandeConge').modal('hide');
-      $('#soldeRestant').html();
-      $('#soldeRestant').html(soldeConge[$('#draggedEventIdEmp').val()].toString());
-      $('#alertSoldeInsuffisant').css('opacity', 1).slideDown();
-      setTimeout(function(){
-        $('#alertSoldeInsuffisant').fadeTo(500, 0).slideUp(500)
-      }, 3000);
-    }
-
-    else{
-      $('.invalid').hide();
-      $('#dateFin').removeClass('not-valid');
-      $('.isTheSame').hide();
-      $('#heureDebut').removeClass('not-valid');
-      $('#heureFin').removeClass('not-valid');
-      
-
-      $("form#form-demandeConge :input").each(function(){
-        let info_id = 'V'+$(this)[0].id;
-        let val = $(this).val() ;
-        info[info_id] = val;
-      })      
-      info['emp_id'] = event.getResources()[0].id;
-      demandeCongesInfos.push(info);
-
-      let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
-      EventsManagment(eventsToRemove,startHour,endHour,start,end,event,'#modalDemandeConge');     
-    } 
-  }
+// --------- Confirmation Demande de Congé | Congé --------- //
+function confirm_form_typeC(form,nbrOfSlice,modal,idForm){
+  $('.btn-primary').hide();
+  $('.spinner-border').show();
   
-// --------- Confirmation du formulaire de Congé --------- //
-function confirm_form_conge(){
-  let start = new Date($('#CdateDebut').val());
-  let end = new Date($('#CdateFin').val());
-  let startHour = $('#CheureDebut').val();
-  let endHour = $('#CheureFin').val();   
+  let start = new Date(form[1].value);
+  let end = new Date(form[2].value);
+  let startHour = form[3].value;
+  let endHour = form[4].value;
   let event = calendar.getEvents()[calendar.getEvents().length - 1];
   let info = []
   let nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1
@@ -81,7 +18,7 @@ function confirm_form_conge(){
 
   if((start <= end) == false){
     $('.invalid').show()
-    var element = document.getElementById('CdateFin');
+    var element = document.getElementById(form[2].id);
     element.classList.add('not-valid');
   }
 
@@ -90,16 +27,16 @@ function confirm_form_conge(){
     && (startHour =='Après-midi' && endHour == 'Après-midi')
   ){
     $('.isTheSame').show()
-    var element = document.getElementById('CheureDebut');
+    var element = document.getElementById(form[3].id);
     element.classList.add('not-valid');
-    element = document.getElementById('CheureFin');
+    element = document.getElementById(form[4].id);
     element.classList.add('not-valid');
   }
 
   else if(soldeConge[$('#draggedEventIdEmp').val()] - nbrOfDays < 0){
     event.remove();
     setHeightOfRow();
-    $('#modalConge').modal('hide');
+    modal.modal('hide');
     $('#soldeRestant').html();
     $('#soldeRestant').html(soldeConge[$('#draggedEventIdEmp').val()].toString());
     $('#alertSoldeInsuffisant').css('opacity', 1).slideDown();
@@ -110,83 +47,41 @@ function confirm_form_conge(){
 
   else{
     $('.invalid').hide();
-    $('#dateFin').removeClass('not-valid');
+    $(form[2].id).removeClass('not-valid');
     $('.isTheSame').hide();
-    $('#CheureDebut').removeClass('not-valid');
-    $('#CheureFin').removeClass('not-valid');
+    $(form[3].id).removeClass('not-valid');
+    $(form[4].id).removeClass('not-valid');
 
-    soldeConge[$('#draggedEventIdEmp').val()] = soldeConge[$('#draggedEventIdEmp').val()] - nbrOfDays;
+    if(idForm == congeInfos)
+      soldeConge[$('#draggedEventIdEmp').val()] = soldeConge[$('#draggedEventIdEmp').val()] - nbrOfDays;
 
-    $("form#form-Conge :input").each(function(){
-      let info_id = $(this)[0].id.slice(1);
+    form.each(function(){
+      let info_id = $(this)[0].id.slice(nbrOfSlice);
       let val = $(this).val() ;
       info[info_id] = val;
     })
     info['emp_id'] = event.getResources()[0].id;
-    congeInfos.push(info);
+    idForm.push(info);
     let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
-    EventsManagment(eventsToRemove,startHour,endHour,start,end,event,'#modalConge')
-  } 
+    EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal);
+  }
 }
 
-// --------- Validation formulaire absence --------- //
-function confirm_form_Absence(){
-  let start = new Date($('#AdateDebut').val());
-  let end = new Date($('#AdateFin').val());
-  let startHour = $('#AheureDebut').val();
-  let endHour = $('#AheureFin').val();
+// --------- confirmation event Absence | Arret | Teletravail | Formation | RDV-Pro | Recup --------- //
+function confirm_form_event(form,nbrOfSlice,modal,idForm){
+  $('.btn-primary').hide();
+  $('.spinner-border').show();
+
+  let start = new Date(form[0].value);
+  let end = new Date(form[1].value);
+  let startHour = form[2].value;
+  let endHour = form[3].value;
   let event = calendar.getEvents()[calendar.getEvents().length - 1];
   let info = [];
-
-  if((start <= end) == false){
-    $('.invalid').show()
-    let element = document.getElementById('AdateFin');
-    element.classList.add('not-valid');
-  }
-
-  else if(
-    (moment(start).isSame(moment(end),'day')) 
-    && (startHour =='Après-midi' && endHour == 'Après-midi')
-  ){
-    $('.isTheSame').show()
-    let element = document.getElementById('AheureDebut');
-    element.classList.add('not-valid');
-    element = document.getElementById('AheureFin');
-    element.classList.add('not-valid');
-  }
-
-  else{
-    $('.invalid').hide();
-    $('#AdateFin').removeClass('not-valid');
-    $('.isTheSame').hide();
-    $('#AheureDebut').removeClass('not-valid');
-    $('#AheureFin').removeClass('not-valid');
-
-    $("form#form-absence :input").each(function(){
-      let info_id = $(this)[0].id.slice(1);
-      let val = $(this).val() ;
-      info[info_id] = val;
-    })
-    info['emp_id'] = event.getResources()[0].id;
-    absenceInfos.push(info);
-    let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
-    EventsManagment(eventsToRemove,startHour,endHour,start,end,event,'#modalAbsence');
   
-  } 
-}
-
-// --------- Validation formulaire arret --------- //
-function confirm_form_Arret(){
-  let start = new Date($('#ArdateDebut').val());
-  let end = new Date($('#ArdateFin').val());
-  let startHour = $('#ArheureDebut').val();
-  let endHour = $('#ArheureFin').val();
-  let event = calendar.getEvents()[calendar.getEvents().length - 1];
-  let info = [];
-
   if((start <= end) == false){
     $('.invalid').show()
-    let element = document.getElementById('ArdateFin');
+    let element = document.getElementById(form[1].id);
     element.classList.add('not-valid');
   }
 
@@ -195,218 +90,36 @@ function confirm_form_Arret(){
     && (startHour =='Après-midi' && endHour == 'Après-midi')
   ){
     $('.isTheSame').show()
-    let element = document.getElementById('ArheureDebut');
+    let element = document.getElementById(form[2].id);
     element.classList.add('not-valid');
-    element = document.getElementById('ArheureFin');
-    element.classList.add('not-valid');
-  }
-
-  else{
-    $('.invalid').hide();
-    $('#ArdateFin').removeClass('not-valid');
-    $('.isTheSame').hide();
-    $('#ArheureDebut').removeClass('not-valid');
-    $('#ArheureFin').removeClass('not-valid');
-
-    $("form#form-arret :input").each(function(){
-      let info_id = $(this)[0].id.slice(2);
-      let val = $(this).val() ;
-      info[info_id] = val;
-    })
-    info['emp_id'] = event.getResources()[0].id;
-    arretInfos.push(info);
-    
-    let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
-    EventsManagment(eventsToRemove,startHour,endHour,start,end,event,'#modalArret'); 
-  } 
-}
-
-// --------- Validation formulaire teletravail --------- //
-function confirm_form_Teletravail(){
-  let start = new Date($('#TdateDebut').val());
-  let end = new Date($('#TdateFin').val());
-  let startHour = $('#TheureDebut').val();
-  let endHour = $('#TheureFin').val();
-  let event = calendar.getEvents()[calendar.getEvents().length - 1];
-  let info = [];
-
-  if((start <= end) == false){
-    $('.invalid').show()
-    let element = document.getElementById('TdateFin');
-    element.classList.add('not-valid');
-  }
-
-  else if(
-    (moment(start).isSame(moment(end),'day')) 
-    && (startHour =='Après-midi' && endHour == 'Après-midi')
-  ){
-    $('.isTheSame').show()
-    let element = document.getElementById('TheureDebut');
-    element.classList.add('not-valid');
-    element = document.getElementById('TheureFin');
+    element = document.getElementById(form[3].id);
     element.classList.add('not-valid');
   }
 
   else{
     $('.invalid').hide();
-    $('#TdateFin').removeClass('not-valid');
+    $(form[1].id).removeClass('not-valid');
     $('.isTheSame').hide();
-    $('#TheureDebut').removeClass('not-valid');
-    $('#TheureFin').removeClass('not-valid');
+    $(form[2].id).removeClass('not-valid');
+    $(form[3].id).removeClass('not-valid');
 
-    $("form#form-teletravail :input").each(function(){
-      let info_id = $(this)[0].id.slice(1);
+    form.each(function(){
+      let info_id = $(this)[0].id.slice(nbrOfSlice);
       let val = $(this).val() ;
       info[info_id] = val;
     })
     info['emp_id'] = event.getResources()[0].id;
-    teletravailInfos.push(info);
-
+    idForm.push(info);
     let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
-    EventsManagment(eventsToRemove,startHour,endHour,start,end,event,'#modalTeletravail'); 
-  } 
-}
-
-// --------- Validation formulaire formation --------- //
-function confirm_form_formation(){
-  let start = new Date($('#FdateDebut').val());
-  let end = new Date($('#FdateFin').val());
-  let startHour = $('#FheureDebut').val();
-  let endHour = $('#FheureFin').val();
-  let event = calendar.getEvents()[calendar.getEvents().length - 1];
-  let info = [];
-
-  if((start <= end) == false){
-    $('.invalid').show()
-    let element = document.getElementById('FdateFin');
-    element.classList.add('not-valid');
+    EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal);
   }
-
-  else if(
-    (moment(start).isSame(moment(end),'day')) 
-    && (startHour =='Après-midi' && endHour == 'Après-midi')
-  ){
-    $('.isTheSame').show()
-    let element = document.getElementById('FheureDebut');
-    element.classList.add('not-valid');
-    element = document.getElementById('FheureFin');
-    element.classList.add('not-valid');
-  }
-
-  else{
-    $('.invalid').hide();
-    $('#FdateFin').removeClass('not-valid');
-    $('.isTheSame').hide();
-    $('#FheureDebut').removeClass('not-valid');
-    $('#FheureFin').removeClass('not-valid');
-
-    $("form#form-formation :input").each(function(){
-      let info_id = $(this)[0].id.slice(1);
-      let val = $(this).val() ;
-      info[info_id] = val;
-    })
-    info['emp_id'] = event.getResources()[0].id;
-    formationInfos.push(info);
-
-    let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
-    EventsManagment(eventsToRemove,startHour,endHour,start,end,event,'#modalFormation'); 
-  } 
-}
-
-// --------- Validation formulaire rdv pro --------- //
-function confirm_form_RdvPro(){
-  let start = new Date($('#RDVdateDebut').val());
-  let end = new Date($('#RDVdateFin').val());
-  let startHour = $('#RDVheureDebut').val();
-  let endHour = $('#RDVheureFin').val();
-  let event = calendar.getEvents()[calendar.getEvents().length - 1];
-  let info = [];
-
-  if((start <= end) == false){
-    $('.invalid').show()
-    let element = document.getElementById('RDVdateFin');
-    element.classList.add('not-valid');
-  }
-
-  else if(
-    (moment(start).isSame(moment(end),'day')) 
-    && (startHour =='Après-midi' && endHour == 'Après-midi')
-  ){
-    $('.isTheSame').show()
-    let element = document.getElementById('RDVheureDebut');
-    element.classList.add('not-valid');
-    element = document.getElementById('RDVheureFin');
-    element.classList.add('not-valid');
-  }
-
-  else{
-    $('.invalid').hide();
-    $('#RDVdateFin').removeClass('not-valid');
-    $('.isTheSame').hide();
-    $('#RDVheureDebut').removeClass('not-valid');
-    $('#RDVheureFin').removeClass('not-valid');
-
-    $("form#form-rdvPro :input").each(function(){
-      let info_id = $(this)[0].id.slice(3);
-      let val = $(this).val() ;
-      info[info_id] = val;
-    })
-    info['emp_id'] = event.getResources()[0].id;
-    rdv_proInfos.push(info);
-
-    let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
-    EventsManagment(eventsToRemove,startHour,endHour,start,end,event,'#modalRdvPro'); 
-  } 
-}
-
-// --------- Validation formulaire recup --------- //
-function confirm_form_Recup(){
-  let start = new Date($('#RdateDebut').val());
-  let end = new Date($('#RdateFin').val());
-  let startHour = $('#RheureDebut').val();
-  let endHour = $('#RheureFin').val();
-  let event = calendar.getEvents()[calendar.getEvents().length - 1];
-  let info = [];
-
-  if((start <= end) == false){
-    $('.invalid').show()
-    let element = document.getElementById('RdateFin');
-    element.classList.add('not-valid');
-  }
-
-  else if(
-    (moment(start).isSame(moment(end),'day')) 
-    && (startHour =='Après-midi' && endHour == 'Après-midi')
-  ){
-    $('.isTheSame').show()
-    let element = document.getElementById('RheureDebut');
-    element.classList.add('not-valid');
-    element = document.getElementById('RheureFin');
-    element.classList.add('not-valid');
-  }
-
-  else{
-    $('.invalid').hide();
-    $('#RdateFin').removeClass('not-valid');
-    $('.isTheSame').hide();
-    $('#RheureDebut').removeClass('not-valid');
-    $('#RheureFin').removeClass('not-valid');
-
-    $("form#form-recup :input").each(function(){
-      let info_id = $(this)[0].id.slice(1);
-      let val = $(this).val() ;
-      info[info_id] = val;
-    })
-    info['emp_id'] = event.getResources()[0].id;
-    recupInfos.push(info);
-
-    let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
-    EventsManagment(eventsToRemove,startHour,endHour,start,end,event,'#modalRecup'); 
-  } 
 }
 
 // --------- Validation formulaire d'ajout d'événement --------- //
 function confirm_form_addEvent(){
+  $('.spinner-border').show();
+  $('.btn-primary').hide();
+
   let start = new Date($('#addEdateDebut').val());
   let end = new Date($('#addEdateFin').val());
   let startHour = $('#addEheureDebut').val();
@@ -487,82 +200,55 @@ function activate_modif_event(){
 
 // --------- permet de modifier les informations et / ou l'évenement --------- //
 function valid_modif_event(event){
-  let start = new Date($('#IdateDebut').val());
-  let end = new Date($('#IdateFin').val());
-  let startHour = $('#IheureDebut').val();
-  let endHour = $('#IheureFin').val();
-  let nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1
-  let _classNames = event.classNames[0];
+  $('.spinner-border').show();
+  $('.btn-primary').hide();
 
-  if(_classNames == 'demandeConge' || _classNames == 'conge'){
-    if(startHour == 'Après-midi')
-      nbrOfDays = nbrOfDays - 0.5
-    if(endHour == 'Après-midi')
-      nbrOfDays = nbrOfDays - 0.5
+  let start = event.start;
+  let end = event.end;
+  if(event.end == null){
+    end = event.start;
   }
-
-  if((start <= end) == false){
-    $('.invalid').show()
-    let element = document.getElementById('IdateFin');
-    element.classList.add('not-valid');
-  }
-
-  else if(
-    (moment(start).isSame(moment(end),'day')) 
-    && (startHour =='Après-midi' && endHour == 'Après-midi')
-  ){
-    $('.isTheSame').show()
-    let element = document.getElementById('IheureDebut');
-    element.classList.add('not-valid');
-    element = document.getElementById('IheureFin');
-    element.classList.add('not-valid');
-  }
-
-  else if((_classNames == 'demandeConge' || _classNames == 'conge' || _classNames == 'demandeCongeValid') && soldeConge[event.getResources()[0].id] - nbrOfDays < 0){
-    $('#modalInfoEvent').modal('hide');
-    $('#soldeRestant').html();
-    $('#soldeRestant').html(soldeConge[event.getResources()[0].id].toString());
-    $('#alertSoldeInsuffisant').css('opacity', 1).slideDown();
-    setTimeout(function(){
-      $('#alertSoldeInsuffisant').fadeTo(500, 0).slideUp(500)
-    }, 3000);
-  }
-
-  else{
-    $('.invalid').hide();
-    $('#IdateFin').removeClass('not-valid');
-    $('.isTheSame').hide();
-    $('#IheureDebut').removeClass('not-valid');
-    $('#IheureFin').removeClass('not-valid');
-
-    if(_classNames == 'conge')
-      soldeConge[event.getResources()[0].id] = soldeConge[event.getResources()[0].id] - nbrOfDays;
-
-    let resetEvent;
-    let _extendedProps;
-    resetEvent = {
-      classNames : event.classNames[0],
-      start:start,
-      end:end,
-      resourceId:event.getResources()[0].id,
-    };
-    _extendedProps = event.extendedProps.ID;
-    deleteEvent(event);
-    calendar.addEvent(resetEvent);
-    
-    resetEvent = calendar.getEvents()[calendar.getEvents().length-1]
-    resetEvent.setExtendedProp('_ID',_extendedProps);
-    pushInfos(resetEvent.classNames[0],info = [],$("form#form-info-event :input"),resetEvent.getResources()[0].id,true)
-    let eventsToRemove = thisDateHasEvent(start,end,resetEvent.getResources()[0].id,true);
-    if(eventsToRemove.length > 0 && !eventsToRemove.find(e=>e==true)) {
-      EventsManagment(eventsToRemove,startHour,endHour,start,end,resetEvent,$('#modalInfoEvent'));
-      cancelModalInfoEvent(); 
-    }
+  if( !moment($('#IdateDebut').val()).isSame(start,'day') || !moment($('#IdateFin').val()).isSame(end,'day') ){
+    if(event.classNames[0] == 'conge' || event.classNames[0] == 'demandeCongeValid'){
+      modif_event_typeC(event);
+    }  
     else{
-      cancelModalInfoEvent();
-    } 
-    
-  } 
+      modif_event(event);
+    }
+  }
+  
+  else{
+    switch(event.classNames[0]){
+      case 'conge':
+        congeInfos.splice(congeInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+        break;
+      case 'demandeCongeValid':
+        demandeCongeValidInfos.splice(demandeCongeValidInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+        break;
+      case 'absence':
+        absenceInfos.splice(absenceInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+        break;
+      case "arret":
+        arretInfos.splice(arretInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+        break;
+      case "teletravail":
+        teletravailInfos.splice(teletravailInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+        break;
+      case "formation" :
+        formationInfos.splice(formationInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+        break;
+      case 'rdv_pro':
+        rdv_proInfos.splice(rdv_proInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+        break;
+      case 'recup':
+        recupInfos.splice(recupInfos.findIndex(info=>moment(info['dateDebut']).isSame(event.start,'day') && info['emp_id'] == event.getResources()[0].id));
+        break;
+    }
+    pushInfos(event.classNames[0],info = [],$("form#form-info-event :input"),event.getResources()[0].id,true);
+    cancelModalInfoEvent();
+    $('.spinner-border').show();
+    $('.btn-primary').hide();
+  }   
 }
 
 // --------- Permet de se rendre à une date --------- //
@@ -620,6 +306,8 @@ function cancel(event){
 
   event.remove();
   setHeightOfRow();
+  $('.spinner-border').show();
+  $('.btn-primary').hide();
 }
 
 function cancelModalInfoEvent(){
@@ -657,6 +345,9 @@ function cancelModalAddEvent(){
 
 // --------- Validation d'une Demande Congé --------- //
 function validation_demande_conge(event){
+  $('.spinner-border').show();
+  $('.btn-primary').hide();
+
   let start = new Date($('#VdateDebut').val());
   let end = new Date($('#VdateFin').val());
   let startHour = $('#VheureDebut').val();
@@ -685,7 +376,7 @@ function validation_demande_conge(event){
     element.classList.add('not-valid');
   }
 
-  else if(soldeConge[$('#draggedEventIdEmp').val()] - nbrOfDays < 0){
+  else if(soldeConge[event.getResources()[0].id] - nbrOfDays < 0){
     $('#modalValidationConge').modal('hide');
     $('#soldeRestant').html();
     $('#soldeRestant').html(soldeConge[event.getResources()[0].id].toString());
@@ -720,12 +411,7 @@ function validation_demande_conge(event){
     resetEvent.setExtendedProp('_ID',_extendedProps);
     pushInfos(resetEvent.classNames[0],info = [],$("form#form-validation-conge :input"),resetEvent.getResources()[0].id)
     let eventsToRemove = thisDateHasEvent(start,end,resetEvent.getResources()[0].id,true);
-    if(eventsToRemove.length > 0 && !eventsToRemove.find(e=>e==true)) {
-      EventsManagment(eventsToRemove,startHour,endHour,start,end,resetEvent,$('#modalValidationConge'));
-    }
-    else{
-      $('#modalValidationConge').modal('hide')
-    }
+    EventsManagment(eventsToRemove,startHour,endHour,start,end,resetEvent,$('#modalValidationConge'));
   }
 }
 
@@ -742,3 +428,131 @@ function denyDemandeConge(event){
   calendar.addEvent(newEvent);
   $('#modalValidationConge').modal('hide'); 
 }
+
+function modif_event(event){
+  let start = new Date($('#IdateDebut').val());
+  let end = new Date($('#IdateFin').val());
+  let startHour = $('#IheureDebut').val();
+  let endHour = $('#IheureFin').val();
+  let inputsValid = checkIfInputValid(start,end,startHour,endHour)
+
+  if(inputsValid){
+    $('.invalid').hide();
+    $('#IdateFin').removeClass('not-valid');
+    $('.isTheSame').hide();
+    $('#IheureDebut').removeClass('not-valid');
+    $('#IheureFin').removeClass('not-valid');
+
+    let resetEvent;
+    let _extendedProps;
+    resetEvent = {
+      classNames : event.classNames[0],
+      start:start,
+      end:end,
+      resourceId:event.getResources()[0].id,
+    };
+    _extendedProps = event.extendedProps.ID;
+    deleteEvent(event);
+    calendar.addEvent(resetEvent);
+    
+    resetEvent = calendar.getEvents()[calendar.getEvents().length-1]
+    resetEvent.setExtendedProp('_ID',_extendedProps);
+    pushInfos(resetEvent.classNames[0],info = [],$("form#form-info-event :input"),resetEvent.getResources()[0].id,true)
+    
+    let eventsToRemove = thisDateHasEvent(start,end,resetEvent.getResources()[0].id,true);
+    EventsManagment(eventsToRemove,startHour,endHour,start,end,resetEvent,$('#modalInfoEvent'));
+    cancelModalInfoEvent(); 
+  }
+}
+
+function modif_event_typeC(event){
+  let start = new Date($('#IdateDebut').val());
+  let end = new Date($('#IdateFin').val());
+  let startHour = $('#IheureDebut').val();
+  let endHour = $('#IheureFin').val();
+  let nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1
+  let _classNames = event.classNames[0];
+  let inputsValid = checkIfInputValid(start,end,startHour,endHour);
+
+  if(startHour == 'Après-midi')
+    nbrOfDays = nbrOfDays - 0.5
+  if(endHour == 'Après-midi')
+    nbrOfDays = nbrOfDays - 0.5
+  
+  let hasenoughCongeAvailable = checkSolde(event,nbrOfDays);
+
+  if(inputsValid && hasenoughCongeAvailable){
+    $('.invalid').hide();
+    $('#IdateFin').removeClass('not-valid');
+    $('.isTheSame').hide();
+    $('#IheureDebut').removeClass('not-valid');
+    $('#IheureFin').removeClass('not-valid');
+
+    if(_classNames == 'conge')
+      soldeConge[event.getResources()[0].id] = soldeConge[event.getResources()[0].id] - nbrOfDays;
+
+    let resetEvent;
+    let _extendedProps;
+    resetEvent = {
+      classNames : event.classNames[0],
+      start:start,
+      end:end,
+      resourceId:event.getResources()[0].id,
+    };
+    _extendedProps = event.extendedProps.ID;
+    deleteEvent(event);
+    calendar.addEvent(resetEvent);
+    
+    resetEvent = calendar.getEvents()[calendar.getEvents().length-1]
+    resetEvent.setExtendedProp('_ID',_extendedProps);
+    pushInfos(resetEvent.classNames[0],info = [],$("form#form-info-event :input"),resetEvent.getResources()[0].id,true)
+    let eventsToRemove = thisDateHasEvent(start,end,resetEvent.getResources()[0].id,true);
+    EventsManagment(eventsToRemove,startHour,endHour,start,end,resetEvent,$('#modalInfoEvent'));
+    cancelModalInfoEvent(); 
+  }
+}
+
+function checkIfInputValid(start,end,startHour,endHour){
+  if((start <= end) == false){
+    $('.invalid').show()
+    let element = document.getElementById('IdateFin');
+    element.classList.add('not-valid');
+    $('.spinner-border').show();
+    $('.btn-primary').hide();
+    return false;
+  }
+
+  else if(
+    (moment(start).isSame(moment(end),'day')) 
+    && (startHour =='Après-midi' && endHour == 'Après-midi')
+  ){
+    $('.isTheSame').show()
+    let element = document.getElementById('IheureDebut');
+    element.classList.add('not-valid');
+    element = document.getElementById('IheureFin');
+    element.classList.add('not-valid');
+    $('.spinner-border').show();
+    $('.btn-primary').hide();
+    return false;
+  }
+  else  
+    return true;
+}
+
+function checkSolde(event,nbrOfDays){
+  if( soldeConge[event.getResources()[0].id] - nbrOfDays < 0 ){
+    cancelModalInfoEvent();
+    $('#soldeRestant').html();
+    $('#soldeRestant').html(soldeConge[event.getResources()[0].id].toString());
+    $('#alertSoldeInsuffisant').css('opacity', 1).slideDown();
+    setTimeout(function(){
+      $('#alertSoldeInsuffisant').fadeTo(500, 0).slideUp(500)
+    }, 3000);
+    $('.spinner-border').show();
+    $('.btn-primary').hide();
+    return false;
+  }
+  else
+    return true;
+}
+

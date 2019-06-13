@@ -96,17 +96,17 @@ document.addEventListener('DOMContentLoaded', function() {
       $('#eventClicked').val(e.event);
 
       if(eventClassNames == 'demandeConge'){
-        $('#info-type-conge').show();
+        $('#modalValidationConge').modal({backdrop: 'static'});        
         demandeCongesInfos.forEach(function(info){
-          dateConge = new Date(info["VdateDebut"]);
+          dateConge = new Date(info["dateDebut"]);
           if(moment(dateConge).isSame(moment(e.event.start),'day') && info['emp_id'] == e.event.getResources()[0].id){
             Object.keys(info).forEach(function(element){
-              $('#'+element).val(info[element]);
+              $('#V'+element).val(info[element]);
             })
             return; // ?
           }
         }) 
-        $('#modalValidationConge').modal('show')
+        $('#modalValidationConge').modal('show');
       }
       else if(eventClassNames == 'conge'){
         $('#modalInfoEvent').modal({backdrop: 'static'});
@@ -294,6 +294,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
           }
         }
+        else{
+          $('#dropLocation').val(dropLocation.resource.id);
+          setHeightOfRow();
+          return true;
+        }
       }
       else if(events.find(e=>e.classNames[0] != 'specialPresent') == undefined){
         if(draggedEvent.classNames[0] == 'demandeConge' || draggedEvent.classNames[0] == 'conge'){
@@ -311,6 +316,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 3000);
             return false;
           }
+        }
+        else{
+          $('#dropLocation').val(dropLocation.resource.id);
+          setHeightOfRow();
+          return true;
         }
       }      
       else{
@@ -333,12 +343,18 @@ document.addEventListener('DOMContentLoaded', function() {
     setHeightOfRow();
   })
   $('.fc-customDay-button').click(function(){
+    getWidthOfEvent();
+    $('.specialPresent').css('width',width_event / 2)
     setHeightOfRow();
   })
   $('.fc-customWeek-button').click(function(){
+    getWidthOfEvent();
+    $('.specialPresent').css('width',width_event / 2)
     setHeightOfRow();
   })
   $('.fc-custom3Month-button').click(function(){
+    getWidthOfEvent();
+    $('.specialPresent').css('width',width_event / 2)
     setHeightOfRow();
   })
 });

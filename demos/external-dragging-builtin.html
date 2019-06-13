@@ -39,11 +39,11 @@
   </div>
 
   <div class="alert alert-danger fade show" role="alert" id='alertSoldeEmpty' style="display:none;text-align: center">
-    Votre <a href="#" class="alert-link">solde de congé</a> est épuisé
+    Le <a href="#" class="alert-link">solde de congé</a> de cet employé est épuisé
   </div>  
 
   <div class="alert alert-danger fade show" role="alert" id='alertSoldeInsuffisant' style="display:none;text-align: center">
-    Votre <a href="#" class="alert-link">solde de congé</a> est insuffisant : il vous reste <p id='soldeRestant' ></p> congés disponible
+    Le <a href="#" class="alert-link">solde de congé</a> de cet employé est insuffisant : il reste <p id='soldeRestant' ></p> congés disponible
   </div>  
   <!-- -------- Stockage event ---------- -->
   <div id='eventClicked' style="display:none"></div>  
@@ -76,7 +76,7 @@
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="modalCongeLabel">Ajouter un Congé</h5>
+            <h5 class="modal-title" id="modalCongeLabel">Ajouter une Demande de Congé</h5>
             <button type="button" class="close" data-dismiss="modal" onclick="cancel($('#eventReceive').val())">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -160,9 +160,13 @@
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="cancel($('#eventReceive').val())">Annuler</button>
-            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_Demandeconge()">Valider</button>
+            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_typeC($('#form-demandeConge :input'),0,$('#modalDemandeConge'),demandeCongesInfos )">Valider</button>
+            <div class="spinner-border text-primary" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -238,6 +242,9 @@
           <div class="modal-footer">
               <button type="button" class="btn btn-danger" onclick="denyDemandeConge($('#eventClicked').val())" data-dismiss="modal">Refuser</button>
               <button type="button" class="btn btn-primary" onclick="validation_demande_conge($('#eventClicked').val())">Valider</button>
+              <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
             </div>
         </div>
       </div>
@@ -310,6 +317,9 @@
           <div class="modal-footer" id="modif-event">
             <button id='modif-event-btn' type="button" class="btn btn-primary" onclick="activate_modif_event()">Modifier</button>
             <button id='valid-modif-event-btn' type="button" class="btn btn-primary" style="display: none" onclick="valid_modif_event($('#eventClicked').val())">Valider Modifications</button>
+            <div class="spinner-border text-primary" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
           </div>
 
         </div>
@@ -381,12 +391,35 @@
                     <textarea class="form-control" id="Ccommentaire" rows="3"></textarea>
                   </div>
                 </div>
+
+                <div class="form-group row">
+                  <label for="justificatif" class="col-sm-4">Justificatif</label>
+                  <div class="col-sm-8">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="justificatif">
+                        <label for="justificatif" class="custom-file-label" readonly>Télécharger la pièce justificative</label>
+                    </div>
+                  </div>
+                </div>
+  
+                <div class="input-group mb-3">
+                  <div class="input-group-prepend">
+                    <div class="input-group-text">
+                      <input type="checkbox" aria-label="Checkbox for following text input">
+                    </div>
+                  </div>
+                  <input type="text" class="form-control" readonly placeholder="Ajouter à mon google Agenda">
+                </div>
+
               </form>
             </div>
   
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" onclick="cancel($('#eventReceive').val())">Annuler</button>
-              <button type="button" class="btn btn-primary" onclick="confirm_form_conge()">Valider</button>
+              <button type="button" class="btn btn-primary" onclick="confirm_form_typeC($('#form-Conge :input'),1,$('#modalConge'),congeInfos )">Valider</button>
+              <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
             </div>
           </div>
         </div>
@@ -451,7 +484,10 @@
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="cancel($('#eventReceive').val())">Annuler</button>
-            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_Absence()">Valider</button>
+            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_event($('#form-absence :input'),1,$('#modalAbsence'),absenceInfos)">Valider</button>
+            <div class="spinner-border text-primary" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -516,7 +552,10 @@
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="cancel($('#eventReceive').val())">Annuler</button>
-            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_Arret()">Valider</button>
+            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_event($('#form-arret :input'),2,$('#modalArret'),arretInfos)">Valider</button>
+            <div class="spinner-border text-primary" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -581,7 +620,10 @@
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="cancel($('#eventReceive').val())">Annuler</button>
-            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_Teletravail()">Valider</button>
+            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_event($('#form-teletravail :input'),1,$('#modalTeletravail'),teletravailInfos)">Valider</button>
+            <div class="spinner-border text-primary" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -646,7 +688,10 @@
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="cancel($('#eventReceive').val())">Annuler</button>
-            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_formation()">Valider</button>
+            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_event($('#form-formation :input'),1,$('#modalFormation'),formationInfos)">Valider</button>
+            <div class="spinner-border text-primary" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -663,7 +708,7 @@
             </button>
           </div>
           <div class="modal-body">
-            <!-- -------- Formulaire Absence ---------- -->
+            <!-- -------- Formulaire rdv pro ---------- -->
             <form id='form-rdvPro'>
 
               <div class="form-group row">
@@ -711,7 +756,10 @@
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="cancel($('#eventReceive').val())">Annuler</button>
-            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_RdvPro()">Valider</button>
+            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_event($('#form-rdvPro :input'),3,$('#modalRdvPro'),rdv_proInfos)">Valider</button>
+            <div class="spinner-border text-primary" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -776,7 +824,10 @@
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="cancel($('#eventReceive').val())">Annuler</button>
-            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_Recup()">Valider</button>
+            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_event($('#form-recup :input'),1,$('#modalRecup'),recupInfos)">Valider</button>
+            <div class="spinner-border text-primary" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -799,6 +850,9 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-danger" data-dismiss="modal">Annuler</button>
             <button type="button" class="btn btn-primary" onclick="deleteEvent($('#eventRightClicked').val())">Valider</button>
+            <div class="spinner-border text-primary" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -948,6 +1002,9 @@
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" onclick="cancelModalAddEvent()">Annuler</button>
               <button id="btn-confirm-demandeconge" type="button" class="btn btn-primary" type="submit" onclick="confirm_form_addEvent()">Valider</button>
+              <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
             </div>
         </div>
       </div>

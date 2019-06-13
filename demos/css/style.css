@@ -181,3 +181,7 @@ body {
 #test{
     height: 37px !important;
 }
+
+.spinner-border{
+    display: none;
+}

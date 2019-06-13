@@ -265,21 +265,27 @@ function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal)
     setHeightOfRow();
     $(modal).modal('hide');  
     displayError();
-  }  
+  }
+  $('.spinner-border').hide();
+  $('.btn-primary').show();  
 }
 
 // --------- Supprimer un évènement (sauf évenement present) --------- //
 function deleteEvent(eventRightClicked){
   let _ID = eventRightClicked.extendedProps.ID; 
   let eventsToRemove = calendar.getEvents().filter(e => e.extendedProps.ID == _ID);
-  let dates = deleteManagment(eventsToRemove)
+  let dates = deleteManagment(eventsToRemove);
+
+  if((eventRightClicked.classNames[0] == 'conge' || eventRightClicked.classNames[0] == 'demandeCongeValid') && moment(eventRightClicked.start).isAfter(moment())){
+    restoreSoldeConge(eventRightClicked.getResources()[0].id,eventRightClicked.start,eventRightClicked.end)
+  }
 
   eventsToRemove.forEach(e => {
     e.remove();
     resetTotalPresence(e);
   })
 
-  removeInfo(eventRightClicked.classNames[0],eventRightClicked.start,eventRightClicked.getResources()[0].id)
+  removeInfo(eventRightClicked.classNames[0],eventRightClicked.start,eventRightClicked.getResources()[0].id);
 
   let events = [];
   dates.forEach(d => {
@@ -290,7 +296,7 @@ function deleteEvent(eventRightClicked){
         allDay: true,
         resourceId: eventRightClicked.getResources()[0].id,
       };
-      events.push(event)
+      events.push(event);
     }
     else{
       event = {
@@ -300,10 +306,10 @@ function deleteEvent(eventRightClicked){
         resourceId: eventRightClicked.getResources()[0].id,
         rendering:'background',
       };
-      events.push(event)
+      events.push(event);
     } 
   }) 
-  calendar.addEventSource(events)
+  calendar.addEventSource(events);
   $('#modalDelete').modal('hide');
 }
 
@@ -568,7 +574,7 @@ function remplirModalInfoEvent(typeEvent,event,modal){
 function pushInfos(classNames,info,form,emp_id,formIsinfo = false){
   if(classNames == 'demandeConge'){
     form.each(function(){
-      let info_id = 'V'+$(this)[0].id.slice(4);
+      let info_id = $(this)[0].id.slice(4);
       let val = $(this).val() ;
       info[info_id] = val;
     })
@@ -664,4 +670,12 @@ function initSoldeConge(){
   });
 }
 
-
+// --------- rend le nombre de congés à l'employé correspondant l'event supprimé si celui-ci est avant now() --------- //
+function restoreSoldeConge(emp_id,start,end){
+  let nbrOfDays;
+  if(end == null)
+    nbrOfDays = 1
+  else
+    nbrOfDays = moment(end).dayOfYear() - moment(start).dayOfYear() + 1
+  soldeConge[emp_id] = soldeConge[emp_id] + nbrOfDays;
+}
