@@ -1,6 +1,6 @@
 /* --------- Check si un évenemment existe à/aux dates(s) du drop 
              Si celui-ci est de type présent / ferié le drop est possible, sinon erreur --------- */
-function thisDateHasEvent(start,end,resourceId,isTrue = false){
+function thisDateHasEvent(start,end,resourceId,isTrue = false,startHour = NaN,endHour = NaN){
   let hasNext = false;
   let allEvents = calendar.getEvents();
   if(isTrue)
@@ -16,11 +16,13 @@ function thisDateHasEvent(start,end,resourceId,isTrue = false){
     else{
       allEventsFilter = allEventsFilter.filter(e=>e.getResources()[0].id == resourceId)
       allEventsFilter.forEach(function(e){
-        if(e.classNames[0] == 'present' || e.classNames[0] == 'ferie_WE' ){
+        if(e.classNames[0] == 'present' || e.classNames[0] == 'ferie_WE' || e.classNames[0] == 'specialPresent'){
             eventsToRemove.push(e); 
         } 
-        else
-          hasNext = true;
+        else{
+          if( !(moment(e.start).hour() == 13 && endHour == 'Après-midi') && !(moment(e.end).hour() == 12 && startHour == 'Après-midi') )
+            hasNext = true;
+        }         
       })
     }
   }
@@ -33,11 +35,13 @@ function thisDateHasEvent(start,end,resourceId,isTrue = false){
     else{
       allEventsFilter = allEventsFilter.filter(e=>e.getResources()[0].id == resourceId)
       allEventsFilter.forEach(function(e){
-        if(e.classNames[0] == 'present' || e.classNames[0] == 'ferie_WE' ){
+        if(e.classNames[0] == 'present' || e.classNames[0] == 'ferie_WE' || e.classNames[0] == 'specialPresent'){
             eventsToRemove.push(e); 
         }  
-        else
-          hasNext = true;
+        else{
+          if( !(moment(e.start).hour() == 13 && endHour == 'Après-midi') && !(moment(e.end).hour() == 12 && startHour == 'Après-midi') )
+            hasNext = true;
+        }
       })
     }
   }
@@ -192,6 +196,59 @@ function addSpecialEventPresentIfMidDay(start,end,event){
   calendar.addEvent(eventPresent2);
 }
 
+function setWidthEvent(start,end,event){
+  let e = calendar.getEvents().filter(e=> (moment(e.start).isSame(start,'day') || moment(e.start).isSame(end,'day')) && e.classNames[0] == 'specialPresent' && e.getResources()[0].id == event.getResources()[0].id);
+  
+  if(moment(start).isSame(end,'day')){
+    if(moment(e[0].start).isSame(start,'day'))
+      event.setProp('classNames',[event.classNames[0],'specialLeft']);
+    else if(moment(e[0].start).isSame(end,'day'))
+      event.setProp('classNames',[event.classNames[0],'specialRight']);
+  }  
+  else{
+    let _start;
+    let _end;
+    let _classNames;
+    let eSplit;
+    if(moment(e[0].start).isSame(start,'day')){
+      _start = moment(start).add(1,'days')._d;
+      _end = end;
+      _classNames = [event.classNames[0],'specialLeft'];
+      eSplit = {
+        classNames:_classNames,
+        start: start,
+        end:start,
+        extendedProps:event.extendedProps.ID,
+        resourceId:event.getResources()[0].id
+      }
+    }
+    else if(moment(e[0].start).isSame(end,'day')){
+      _start = start;
+      _end = moment(end).subtract(1,'days')._d;
+      _classNames = [event.classNames[0],'specialRight'];
+      eSplit = {
+        classNames:_classNames,
+        start:end,
+        end:end,
+        extendedProps:event.extendedProps.ID,
+        resourceId:event.getResources()[0].id
+      }
+    }
+    let resetEvent = {
+      classNames:event.classNames[0],
+      start:_start,
+      end:_end,
+      extendedProps:event.extendedProps.ID,
+      resourceId:event.getResources()[0].id
+    };
+
+    e[0].remove();
+    event.remove();
+    calendar.addEvent(resetEvent);
+    calendar.addEvent(eSplit);
+  }
+}
+
 // --------- permet de modifier l'heure de départ et de fin d'un évenement --------- //
 function setHoursOfEvent(startHour,endHour,start,end,event,matineesIsChecked = false,apremsIsChecked = false){
   if(startHour == 'Matin' || matineesIsChecked)
@@ -209,21 +266,29 @@ function setHoursOfEvent(startHour,endHour,start,end,event,matineesIsChecked = f
 
 // --------- Gère tout ce qu'il faut lors de la création d'un nouvel évènement  --------- //
 function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal){
+  // let bool = false;
+  // let test1 = calendar.getEvents().filter(e => moment(e.start).isSame(start,'day') && e.getResources()[0].id == event.getResources()[0].id && event.classNames[0] !='present');
+  // let test2 = calendar.getEvents().filter(e => moment(e.start).isSame(end,'day') && e.getResources()[0].id == event.getResources()[0].id && event.classNames[0] !='present');
+  // let test3 = calendar.getEvents().filter(e => moment(e.end).isSame(start,'day') && e.getResources()[0].id == event.getResources()[0].id && event.classNames[0] !='present');
+  // let test4 = calendar.getEvents().filter(e => moment(e.end).isSame(end,'day') && e.getResources()[0].id == event.getResources()[0].id && event.classNames[0] !='present');
+  // let tot = test1.length + test2.length + test3.length + test4.length
+  // if( tot == 4){
+  //   if(test1.length + test2.length != 4)
+  //     bool = true;
+  // }
+
+  // e=> (moment(e.start).isSame(start)moment(e.start).isSame())
+
   if(eventsToRemove.length>0 && eventsToRemove[eventsToRemove.length-1] != true && eventsToRemove.find(e => e == 'thisDateIsEmpty')!="thisDateIsEmpty"){
     event.setExtendedProp('ID',create_unique_ID());
     setHoursOfEvent(startHour,endHour,start,end,event);
-    // console.time("eventsToRemove");
     eventsToRemove.forEach(eventToRemove => eventToRemove.remove());
-    // console.timeEnd("eventsToRemove");
     if(moment(start).isSame(moment(end),'day')){
       if(!(startHour=='Matin' && endHour=='Soir')){
         addEventPresentIfMidDay(start,end,event,startHour,endHour);
       }
     }
     else{
-      // console.time('setHoursOfEvent');
-      
-      // console.timeEnd('setHoursOfEvent');
       if(startHour == 'Après-midi' && endHour == 'Après-midi'){
         addSpecialEventPresentIfMidDay(start,end,event);
       }
@@ -231,11 +296,13 @@ function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal)
         addEventPresentIfMidDay(start,start,event,startHour,endHour);
       }
       else if(endHour == 'Après-midi')
-        addEventPresentIfMidDay(end,end,event,startHour,endHour);
+        addEventPresentIfMidDay(end,end,event,startHour,endHour);      
     }
-    // console.time("updateTotalPresenceAtDate"); 
+    
+    // if(bool)
+    //   setWidthEvent(start,end,event);
+ 
     updateTotalPresenceAtDate(event);
-    // console.timeEnd("updateTotalPresenceAtDate");
     event.setProp('title','');
     setHeightOfRow();
     $(modal).modal('hide');    
@@ -258,6 +325,9 @@ function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal)
       else if(endHour == 'Après-midi')
         addEventPresentIfMidDay(end,end,event,startHour,endHour);
     }
+
+    // if(bool)
+    //   setWidthEvent(start,end,event);
     event.setProp('title','');
     $(modal).modal('hide');    
     setHeightOfRow();

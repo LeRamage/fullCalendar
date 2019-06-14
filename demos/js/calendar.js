@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
     eventAllow: function(dropLocation, draggedEvent){
       events = calendar.getEvents().filter( e => moment(e.start).isSame(moment(dropLocation.start),'day'))
       events = events.filter(e=>e.getResources()[0].id == dropLocation.resource.id)
-      if(events.find(e=>e.classNames[0] != 'present') == undefined){
+      if(events.find(e=>e.classNames[0] == 'present')){
         if(draggedEvent.classNames[0] == 'demandeConge' || draggedEvent.classNames[0] == 'conge'){
           if(soldeConge[draggedEvent.getResources()[0].id] > 0){
             $('#dropLocation').val(dropLocation.resource.id);
@@ -300,29 +300,29 @@ document.addEventListener('DOMContentLoaded', function() {
           return true;
         }
       }
-      else if(events.find(e=>e.classNames[0] != 'specialPresent') == undefined){
-        if(draggedEvent.classNames[0] == 'demandeConge' || draggedEvent.classNames[0] == 'conge'){
-          if(soldeConge[draggedEvent.getResources()[0].id] > 0){
-            $('#dropLocation').val(dropLocation.resource.id);
-            setHeightOfRow();
-            $('#draggedEventIdEmp').val(draggedEvent.getResources()[0].id);
-            return true;
-          }
-          else{
-            setHeightOfRow();
-            $('#alertSoldeEmpty').css('opacity', 1).slideDown();
-            setTimeout(function(){
-              $('#alertSoldeEmpty').fadeTo(500, 0).slideUp(500)
-            }, 3000);
-            return false;
-          }
-        }
-        else{
-          $('#dropLocation').val(dropLocation.resource.id);
-          setHeightOfRow();
-          return true;
-        }
-      }      
+      // else if(events.find(e=>e.classNames[0] == 'specialPresent')){
+      //   if(draggedEvent.classNames[0] == 'demandeConge' || draggedEvent.classNames[0] == 'conge'){
+      //     if(soldeConge[draggedEvent.getResources()[0].id] > 0){
+      //       $('#dropLocation').val(dropLocation.resource.id);
+      //       setHeightOfRow();
+      //       $('#draggedEventIdEmp').val(draggedEvent.getResources()[0].id);
+      //       return true;
+      //     }
+      //     else{
+      //       setHeightOfRow();
+      //       $('#alertSoldeEmpty').css('opacity', 1).slideDown();
+      //       setTimeout(function(){
+      //         $('#alertSoldeEmpty').fadeTo(500, 0).slideUp(500)
+      //       }, 3000);
+      //       return false;
+      //     }
+      //   }
+      //   else{
+      //     $('#dropLocation').val(dropLocation.resource.id);
+      //     setHeightOfRow();
+      //     return true;
+      //   }
+      // }      
       else{
         setHeightOfRow();
         return false;

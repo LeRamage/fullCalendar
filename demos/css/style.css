@@ -185,3 +185,13 @@ body {
 .spinner-border{
     display: none;
 }
+
+.specialRight{
+    right: unset !important;
+    width:12.5px !important;
+}
+
+.specialLeft{
+    left: unset !important;
+    width:12.5px !important;    
+}

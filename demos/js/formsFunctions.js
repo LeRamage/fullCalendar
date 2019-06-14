@@ -114,7 +114,7 @@ function confirm_form_event(form,nbrOfSlice,modal,idForm){
       })
       info['emp_id'] = event.getResources()[0].id;
       idForm.push(info);
-      let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true);
+      let eventsToRemove = thisDateHasEvent(start,end,$('#dropLocation').val(),true,startHour,endHour);
       EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal);
     }
   },10)
