@@ -28,7 +28,7 @@ function thisDateHasEvent(start,end,resourceId,isTrue = false,startHour = NaN,en
   }
 
   else{ // External Event = plrs journées
-    let allEventsFilter = allEvents.filter(e => daysToCheck.find(date => moment(date).isSame(moment(e.start),'day')))
+    let allEventsFilter = allEvents.filter(e => daysToCheck.find(date => moment(date).isSame(moment(e.start),'day') || moment(date).isSame(e.end,'day')))
     if(allEventsFilter.length == 0){
       eventsToRemove.push('thisDateIsEmpty');
     }
@@ -198,13 +198,19 @@ function addSpecialEventPresentIfMidDay(start,end,event){
 
 function setWidthEvent(start,end,event){
   let e = calendar.getEvents().filter(e=> (moment(e.start).isSame(start,'day') || moment(e.start).isSame(end,'day')) && e.classNames[0] == 'specialPresent' && e.getResources()[0].id == event.getResources()[0].id);
-  
+  let _ID = event.extendedProps.ID;
+
   if(moment(start).isSame(end,'day')){
-    if(moment(e[0].start).isSame(start,'day'))
-      event.setProp('classNames',[event.classNames[0],'specialLeft']);
-    else if(moment(e[0].start).isSame(end,'day'))
+    if(moment(e[0].start).hour() == 9){
       event.setProp('classNames',[event.classNames[0],'specialRight']);
-  }  
+      e[0].remove();
+    }
+    else if(moment(e[0].start).hour() == 13){
+      event.setProp('classNames',[event.classNames[0],'specialLeft']);
+      e[0].remove();
+    }
+  } 
+   
   else{
     let _start;
     let _end;
@@ -218,7 +224,6 @@ function setWidthEvent(start,end,event){
         classNames:_classNames,
         start: start,
         end:start,
-        extendedProps:event.extendedProps.ID,
         resourceId:event.getResources()[0].id
       }
     }
@@ -230,7 +235,6 @@ function setWidthEvent(start,end,event){
         classNames:_classNames,
         start:end,
         end:end,
-        extendedProps:event.extendedProps.ID,
         resourceId:event.getResources()[0].id
       }
     }
@@ -238,7 +242,6 @@ function setWidthEvent(start,end,event){
       classNames:event.classNames[0],
       start:_start,
       end:_end,
-      extendedProps:event.extendedProps.ID,
       resourceId:event.getResources()[0].id
     };
 
@@ -246,6 +249,10 @@ function setWidthEvent(start,end,event){
     event.remove();
     calendar.addEvent(resetEvent);
     calendar.addEvent(eSplit);
+    resetEvent = calendar.getEvents()[calendar.getEvents().length-2];
+    resetEvent.setExtendedProp('ID',_ID);
+    eSplit = calendar.getEvents()[calendar.getEvents().length-1];
+    eSplit.setExtendedProp('ID',_ID);
   }
 }
 
@@ -266,18 +273,6 @@ function setHoursOfEvent(startHour,endHour,start,end,event,matineesIsChecked = f
 
 // --------- Gère tout ce qu'il faut lors de la création d'un nouvel évènement  --------- //
 function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal){
-  // let bool = false;
-  // let test1 = calendar.getEvents().filter(e => moment(e.start).isSame(start,'day') && e.getResources()[0].id == event.getResources()[0].id && event.classNames[0] !='present');
-  // let test2 = calendar.getEvents().filter(e => moment(e.start).isSame(end,'day') && e.getResources()[0].id == event.getResources()[0].id && event.classNames[0] !='present');
-  // let test3 = calendar.getEvents().filter(e => moment(e.end).isSame(start,'day') && e.getResources()[0].id == event.getResources()[0].id && event.classNames[0] !='present');
-  // let test4 = calendar.getEvents().filter(e => moment(e.end).isSame(end,'day') && e.getResources()[0].id == event.getResources()[0].id && event.classNames[0] !='present');
-  // let tot = test1.length + test2.length + test3.length + test4.length
-  // if( tot == 4){
-  //   if(test1.length + test2.length != 4)
-  //     bool = true;
-  // }
-
-  // e=> (moment(e.start).isSame(start)moment(e.start).isSame())
 
   if(eventsToRemove.length>0 && eventsToRemove[eventsToRemove.length-1] != true && eventsToRemove.find(e => e == 'thisDateIsEmpty')!="thisDateIsEmpty"){
     event.setExtendedProp('ID',create_unique_ID());
@@ -299,9 +294,16 @@ function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal)
         addEventPresentIfMidDay(end,end,event,startHour,endHour);      
     }
     
-    // if(bool)
-    //   setWidthEvent(start,end,event);
- 
+    if(calendar.getEvents().filter(e => 
+      (moment(e.start).isSame(event.start,'day') && e.getResources()[0].id == event.getResources()[0].id 
+      || moment(e.start).isSame(event.end,'day') && e.getResources()[0].id == event.getResources()[0].id
+      || moment(e.end).isSame(event.start,'day') && e.getResources()[0].id == event.getResources()[0].id)
+      && e.classNames[0] != 'present'
+      && e.classNames[0] != 'specialPresent'
+    ).length == 2){
+      setWidthEvent(start,end,event);
+    };
+       
     updateTotalPresenceAtDate(event);
     event.setProp('title','');
     setHeightOfRow();
@@ -326,8 +328,16 @@ function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal)
         addEventPresentIfMidDay(end,end,event,startHour,endHour);
     }
 
-    // if(bool)
-    //   setWidthEvent(start,end,event);
+    if(calendar.getEvents().filter(e => 
+      (moment(e.start).isSame(event.start,'day') && e.getResources()[0].id == event.getResources()[0].id 
+      || moment(e.start).isSame(event.end,'day') && e.getResources()[0].id == event.getResources()[0].id
+      || moment(e.end).isSame(event.start,'day') && e.getResources()[0].id == event.getResources()[0].id)
+      && e.classNames[0] != 'present'
+      && e.classNames[0] != 'specialPresent'
+    ).length == 2){
+      setWidthEvent(start,end,event);
+    };
+
     event.setProp('title','');
     $(modal).modal('hide');    
     setHeightOfRow();
@@ -347,27 +357,74 @@ function deleteEvent(eventRightClicked, isAmodif = false){
   let _ID = eventRightClicked.extendedProps.ID; 
   let eventsToRemove = calendar.getEvents().filter(e => e.extendedProps.ID == _ID);
   let dates = deleteManagment(eventsToRemove);
+  let hasSpecialRight = [];
+  let hasSpecialLeft = [];
 
   if( (eventRightClicked.classNames[0] == 'conge' || eventRightClicked.classNames[0] == 'demandeCongeValid') && moment(eventRightClicked.start).isAfter(moment()) && !isAmodif){
     restoreSoldeConge(eventRightClicked.getResources()[0].id,eventRightClicked.start,eventRightClicked.end,calendar.getEvents().filter(e=>e.extendedProps.ID = _ID && e.classNames[0] == 'specialPresent').length)
   }
 
   eventsToRemove.forEach(e => {
+    if(e.classNames[1] == 'specialRight'){
+      hasSpecialRight[0] = true;
+      hasSpecialRight[1] = e.start;
+      hasSpecialRight[2] = calendar.getEvents().filter(ev=>(moment(ev.start).isSame(e.start,'day') || moment(ev.start).isSame(e.end,'day')) && ev.getResources()[0].id == e.getResources()[0].id && ev != e)[0].extendedProps.ID;
+    }
+    if(e.classNames[1] == 'specialLeft'){
+      hasSpecialLeft[0] = true;
+      hasSpecialLeft[1] = e.start;
+      hasSpecialLeft[2] = calendar.getEvents().filter(ev=>(moment(ev.start).isSame(e.start,'day') || moment(ev.start).isSame(e.end,'day')) && ev.getResources()[0].id == e.getResources()[0].id && ev != e)[0].extendedProps.ID;
+    }
     e.remove();
     resetTotalPresence(e);
   })
+  
+  let checkIfSpecial = calendar.getEvents().filter(e=>(moment(e.start).isSame(eventRightClicked.start,'day') || moment(e.start).isSame(eventRightClicked.end,'day')) && (e.classNames[1] == 'specialRight' || e.classNames[1] == 'specialLeft' ));
+  if(checkIfSpecial.length > 0){
+    updateTotalPresenceAtDate(checkIfSpecial[0]);
+    if(checkIfSpecial[0].classNames[1] == 'specialRight'){
+      let e = checkIfSpecial[0];
+      hasSpecialLeft[0] = true;
+      hasSpecialLeft[1] = e.start;
+      hasSpecialLeft[2] = calendar.getEvents().filter(ev=>(moment(ev.start).isSame(e.start,'day') || moment(ev.start).isSame(e.end,'day')) && ev.getResources()[0].id == e.getResources()[0].id && ev != e)[0].extendedProps.ID;
+    }
+    if(checkIfSpecial[0].classNames[1] == 'specialLeft'){
+      let e = checkIfSpecial[0];
+      hasSpecialRight[0] = true;
+      hasSpecialRight[1] = e.start;
+      hasSpecialRight[2] = calendar.getEvents().filter(ev=>(moment(ev.start).isSame(e.start,'day') || moment(ev.start).isSame(e.end,'day')) && ev.getResources()[0].id == e.getResources()[0].id && ev != e)[0].extendedProps.ID;
+    }
+  }
 
   removeInfo(eventRightClicked.classNames[0],eventRightClicked.start,eventRightClicked.getResources()[0].id);
 
   let events = [];
   dates.forEach(d => {
     if(![0,6].includes(d.getDay())){
-      event = {
-        classNames: 'present',
-        start: d,
-        allDay: true,
-        resourceId: eventRightClicked.getResources()[0].id,
-      };
+      if(hasSpecialRight[0] == true && moment(d).isSame(hasSpecialRight[1],'day') && eventsToRemove.length != 3){
+        event = {
+          classNames: ['specialPresent','split-right'],
+          start: hasSpecialRight[1],
+          end: hasSpecialRight[1],
+          resourceId:eventRightClicked.getResources()[0].id,
+        }
+      }
+      else if(hasSpecialLeft[0] == true && moment(d).isSame(hasSpecialLeft[1],'day') && eventsToRemove.length != 3){
+        event = {
+          classNames: ['specialPresent','split-left'],
+          start: hasSpecialLeft[1],
+          end: hasSpecialLeft[1],
+          resourceId:eventRightClicked.getResources()[0].id,
+        }
+      }
+      else{
+        event = {
+          classNames: 'present',
+          start: d,
+          allDay: true,
+          resourceId: eventRightClicked.getResources()[0].id,
+        };
+      }
       events.push(event);
     }
     else{
@@ -382,7 +439,18 @@ function deleteEvent(eventRightClicked, isAmodif = false){
     } 
   }) 
   calendar.addEventSource(events);
+  if(hasSpecialLeft[0] == true){
+    let eventToSetEprop = calendar.getEvents().filter(e=>moment(e.start).isSame(hasSpecialLeft[1]) && e.classNames[1] == 'split-left' && e.getResources()[0].id == eventRightClicked.getResources()[0].id);
+    if(eventToSetEprop.length != 0)
+      eventToSetEprop[0].setExtendedProp('ID',hasSpecialLeft[2]);
+  }
+  if(hasSpecialRight[0] == true){
+    let eventToSetEprop = calendar.getEvents().filter(e=>moment(e.start).isSame(hasSpecialRight[1]) && e.classNames[1] == 'split-right' && e.getResources()[0].id == eventRightClicked.getResources()[0].id);
+    if(eventToSetEprop.length != 0)
+      eventToSetEprop[0].setExtendedProp('ID',hasSpecialRight[2]);
+  }
   $('#modalDelete').modal('hide');
+  setHeightOfRow();
 }
 
 // --------- Permet d'obtenir la longueur des evenements --------- //
@@ -415,6 +483,8 @@ function updateTotalPresenceAtDate(event){
     let eventsAtDate = calendar.getEvents().filter(e=>
       (moment(e.start).isSame(start,'day') && e.getResources()[0].id == event.getResources()[0].id && e.classNames[0] == 'specialPresent')
       || (moment(e.start).isSame(end,'day') && e.getResources()[0].id == event.getResources()[0].id && e.classNames[0] == 'specialPresent')
+      || (moment(e.start).isSame(start,'day') && e.getResources()[0].id == event.getResources()[0].id && (e.classNames[1] == 'specialRight' || e.classNames[1] == 'specialLeft'))
+      || (moment(e.start).isSame(end,'day') && e.getResources()[0].id == event.getResources()[0].id && (e.classNames[1] == 'specialRight' || e.classNames[1] == 'specialLeft'))
     )
 
     let dates = createDateArray(start,end);
@@ -424,10 +494,8 @@ function updateTotalPresenceAtDate(event){
         eventTotPresence = calendar.getEvents().filter(e=> e.classNames[0] == 'recap' && moment(e.start).isSame(d,'day'));
         if(eventTotPresence.length > 0){
           compteurPresence = eventTotPresence[0].extendedProps.totPres - 1;
-          console.time('test')
           eventTotPresence[0].setProp('title',compteurPresence);
           eventTotPresence[0].setExtendedProp('totPres',compteurPresence);
-          console.timeEnd('test')
         }
       }
     })
@@ -454,6 +522,11 @@ function resetTotalPresence(event){
     
     if(event.classNames[0] == 'specialPresent'){     
       compteurPresence = eventTotPresence[0].extendedProps.totPres - 0.5;
+      eventTotPresence[0].setProp('title',compteurPresence);
+      eventTotPresence[0].setExtendedProp('totPres',compteurPresence);
+    }
+    else if(event.classNames[1] == 'specialLeft' || event.classNames[1] == 'specialRight'){
+      compteurPresence = eventTotPresence[0].extendedProps.totPres + 0.5;
       eventTotPresence[0].setProp('title',compteurPresence);
       eventTotPresence[0].setExtendedProp('totPres',compteurPresence);
     }
@@ -502,26 +575,40 @@ function updateTotalPresenceAfterEventDrop(event,oldevent){
 
 function deleteManagment(eventsToRemove){
   let _dates;
-  if( eventsToRemove.length == 2 && eventsToRemove[0].classNames[0] != 'specialPresent'){
+  if( eventsToRemove.length == 2 && eventsToRemove[0].classNames[0] != 'specialPresent' && eventsToRemove[1].classNames[1] != 'specialLeft' && eventsToRemove[1].classNames[1] != 'specialRight'){
     if(eventsToRemove[0].end == null)
       _dates = createDateArray(eventsToRemove[0].start,eventsToRemove[0].start);
     else
       _dates = createDateArray(eventsToRemove[0].start,eventsToRemove[0].end);
   }
 
-  else if(eventsToRemove.length == 2 && eventsToRemove[1].classNames[0] != 'specialPresent'){
+  else if(eventsToRemove.length == 2 && eventsToRemove[1].classNames[0] != 'specialPresent' && eventsToRemove[1].classNames[1] != 'specialLeft' && eventsToRemove[1].classNames[1] != 'specialRight'){
     if(eventsToRemove[1].end == null)
       _dates = createDateArray(eventsToRemove[1].start,eventsToRemove[1].start);
     else
       _dates = createDateArray(eventsToRemove[1].start,eventsToRemove[1].end);
   }
 
+  else if(eventsToRemove.length == 2 && (eventsToRemove[1].classNames[1] == 'specialLeft' || eventsToRemove[1].classNames[1] == 'specialRight')){
+    if(moment(eventsToRemove[1].start).isBefore(eventsToRemove[0].start,'days'))
+      _dates = createDateArray(eventsToRemove[1].start,eventsToRemove[0].end)
+    else
+      _dates = createDateArray(eventsToRemove[0].start,eventsToRemove[1].start)
+  }    
+  
   else if (eventsToRemove.length == 1 && !moment(eventsToRemove[0].start).isSame(moment(eventsToRemove[0].end),'day')){
     if(eventsToRemove[0].end == null)
       _dates = createDateArray(eventsToRemove[0].start,eventsToRemove[0].start);
     else
       _dates = createDateArray(eventsToRemove[0].start,eventsToRemove[0].end);
-  }    
+  }
+
+  else if(eventsToRemove.length == 3){
+    if(moment(eventsToRemove[1].start).isBefore(eventsToRemove[0].start,'days'))
+    _dates = createDateArray(eventsToRemove[1].start,eventsToRemove[0].end)
+  else
+    _dates = createDateArray(eventsToRemove[0].start,eventsToRemove[1].start)
+  }
 
   else{
     if(eventsToRemove[0].classNames[0] != 'specialPresent')

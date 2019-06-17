@@ -169,7 +169,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     drop: function(arg) {  
       let Cid = arg.draggedEl.id;
-      setHeightOfRow();
 
       if(Cid == 'demandeConge'){ 
         $('#modalDemandeConge').modal({backdrop: 'static'});
@@ -242,6 +241,10 @@ document.addEventListener('DOMContentLoaded', function() {
           updateTotalPresenceAtDate($('#eventReceive').val()) 
         },10)          
       }
+
+      setTimeout(function(){
+        setHeightOfRow();
+      },100)
     },
     
     eventRender: function(event) {   
@@ -271,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
           $('#addEdateFin').val(moment(event.event.start).add(1,'days').toISOString().slice(0,10));
           $("#eventDblClicked").val(event.event);
         });
-      }
+      }   
     },
     
     eventAllow: function(dropLocation, draggedEvent){
@@ -300,29 +303,29 @@ document.addEventListener('DOMContentLoaded', function() {
           return true;
         }
       }
-      // else if(events.find(e=>e.classNames[0] == 'specialPresent')){
-      //   if(draggedEvent.classNames[0] == 'demandeConge' || draggedEvent.classNames[0] == 'conge'){
-      //     if(soldeConge[draggedEvent.getResources()[0].id] > 0){
-      //       $('#dropLocation').val(dropLocation.resource.id);
-      //       setHeightOfRow();
-      //       $('#draggedEventIdEmp').val(draggedEvent.getResources()[0].id);
-      //       return true;
-      //     }
-      //     else{
-      //       setHeightOfRow();
-      //       $('#alertSoldeEmpty').css('opacity', 1).slideDown();
-      //       setTimeout(function(){
-      //         $('#alertSoldeEmpty').fadeTo(500, 0).slideUp(500)
-      //       }, 3000);
-      //       return false;
-      //     }
-      //   }
-      //   else{
-      //     $('#dropLocation').val(dropLocation.resource.id);
-      //     setHeightOfRow();
-      //     return true;
-      //   }
-      // }      
+      else if(events.find(e=>e.classNames[0] == 'specialPresent')){
+        if(draggedEvent.classNames[0] == 'demandeConge' || draggedEvent.classNames[0] == 'conge'){
+          if(soldeConge[draggedEvent.getResources()[0].id] > 0){
+            $('#dropLocation').val(dropLocation.resource.id);
+            setHeightOfRow();
+            $('#draggedEventIdEmp').val(draggedEvent.getResources()[0].id);
+            return true;
+          }
+          else{
+            setHeightOfRow();
+            $('#alertSoldeEmpty').css('opacity', 1).slideDown();
+            setTimeout(function(){
+              $('#alertSoldeEmpty').fadeTo(500, 0).slideUp(500)
+            }, 3000);
+            return false;
+          }
+        }
+        else{
+          $('#dropLocation').val(dropLocation.resource.id);
+          setHeightOfRow();
+          return true;
+        }
+      }      
       else{
         setHeightOfRow();
         return false;
@@ -337,24 +340,36 @@ document.addEventListener('DOMContentLoaded', function() {
   initSoldeConge();
   $('.fc-next-button').click(function(){
     createDefault();
+    $('.specialPresent').css('width',width_event / 2);
+    $('.specialRight').css('width',width_event / 2);
+    $('.specialLeft').css('width',width_event / 2);
     setHeightOfRow();
   })
   $('.fc-prev-button').click(function(){
+    $('.specialPresent').css('width',width_event / 2);
+    $('.specialRight').css('width',width_event / 2);
+    $('.specialLeft').css('width',width_event / 2);
     setHeightOfRow();
   })
   $('.fc-customDay-button').click(function(){
     getWidthOfEvent();
-    $('.specialPresent').css('width',width_event / 2)
+    $('.specialPresent').css('width',width_event / 2);
+    $('.specialRight').css('width',width_event / 2);
+    $('.specialLeft').css('width',width_event / 2);
     setHeightOfRow();
   })
   $('.fc-customWeek-button').click(function(){
     getWidthOfEvent();
-    $('.specialPresent').css('width',width_event / 2)
+    $('.specialPresent').css('width',width_event / 2);
+    $('.specialRight').css('width',width_event / 2);
+    $('.specialLeft').css('width',width_event / 2);
     setHeightOfRow();
   })
   $('.fc-custom3Month-button').click(function(){
     getWidthOfEvent();
-    $('.specialPresent').css('width',width_event / 2)
+    $('.specialPresent').css('width',width_event / 2);
+    $('.specialRight').css('width',width_event / 2);
+    $('.specialLeft').css('width',width_event / 2);
     setHeightOfRow();
   })
 });

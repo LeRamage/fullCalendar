@@ -21,6 +21,9 @@ function confirm_form_typeC(form,nbrOfSlice,modal,idForm){
       $('.invalid').show()
       var element = document.getElementById(form[2].id);
       element.classList.add('not-valid');
+      $('.btn-primary').show();
+      $('.spinner-border').hide();
+      $('#valid-modif-event-btn').hide();
     }
   
     else if(
@@ -32,6 +35,9 @@ function confirm_form_typeC(form,nbrOfSlice,modal,idForm){
       element.classList.add('not-valid');
       element = document.getElementById(form[4].id);
       element.classList.add('not-valid');
+      $('.btn-primary').show();
+      $('.spinner-border').hide();
+      $('#valid-modif-event-btn').hide();
     }
   
     else if(soldeConge[$('#draggedEventIdEmp').val()] - nbrOfDays < 0){
@@ -87,6 +93,9 @@ function confirm_form_event(form,nbrOfSlice,modal,idForm){
       $('.invalid').show()
       let element = document.getElementById(form[1].id);
       element.classList.add('not-valid');
+      $('.btn-primary').show();
+      $('.spinner-border').hide();
+      $('#valid-modif-event-btn').hide();
     }
   
     else if(
@@ -98,6 +107,9 @@ function confirm_form_event(form,nbrOfSlice,modal,idForm){
       element.classList.add('not-valid');
       element = document.getElementById(form[3].id);
       element.classList.add('not-valid');
+      $('.btn-primary').show();
+      $('.spinner-border').hide();
+      $('#valid-modif-event-btn').hide();
     }
   
     else{
@@ -145,6 +157,9 @@ function confirm_form_addEvent(){
       $('.invalid').show()
       let element = document.getElementById('addEdateFin');
       element.classList.add('not-valid');
+      $('.btn-primary').show();
+      $('.spinner-border').hide();
+      $('#valid-modif-event-btn').hide();
     }
   
     else if(
@@ -156,6 +171,9 @@ function confirm_form_addEvent(){
       element.classList.add('not-valid');
       element = document.getElementById('addEheureFin');
       element.classList.add('not-valid');
+      $('.btn-primary').show();
+      $('.spinner-border').hide();
+      $('#valid-modif-event-btn').hide();
     }
   
     else if((_classNames == 'demandeConge' || _classNames == 'conge') && soldeConge[$("#eventDblClicked").val().getResources()[0].id] - nbrOfDays < 0){
@@ -401,6 +419,9 @@ function validation_demande_conge(event){
       $('.invalid').show()
       let element = document.getElementById('VdateFin');
       element.classList.add('not-valid');
+      $('.btn-primary').show();
+      $('.spinner-border').hide();
+      $('#valid-modif-event-btn').hide();
     }
   
     else if(
@@ -412,6 +433,9 @@ function validation_demande_conge(event){
       element.classList.add('not-valid');
       element = document.getElementById('VheureFin');
       element.classList.add('not-valid');
+      $('.btn-primary').show();
+      $('.spinner-border').hide();
+      $('#valid-modif-event-btn').hide();
     }
   
     else if(soldeConge[event.getResources()[0].id] - nbrOfDays < 0){
@@ -571,6 +595,9 @@ function checkIfInputValid(start,end,startHour,endHour){
     $('.spinner-border').hide();
     $('.btn-primary').show();
     $('#valid-modif-event-btn').hide();
+    $('.btn-primary').show();
+    $('.spinner-border').hide();
+    $('#valid-modif-event-btn').hide();
     return false;
   }
 
@@ -585,6 +612,9 @@ function checkIfInputValid(start,end,startHour,endHour){
     element.classList.add('not-valid');
     $('.spinner-border').hide();
     $('.btn-primary').show();
+    $('#valid-modif-event-btn').hide();
+    $('.btn-primary').show();
+    $('.spinner-border').hide();
     $('#valid-modif-event-btn').hide();
     return false;
   }
