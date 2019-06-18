@@ -160,7 +160,7 @@
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="cancel($('#eventReceive').val())">Annuler</button>
-            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_typeC($('#form-demandeConge :input'),0,$('#modalDemandeConge'),demandeCongesInfos )">Valider</button>
+            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_event($('#form-demandeConge :input'), 0, $('#modalDemandeConge'), demandeCongesInfos)">Valider</button>
             <div class="spinner-border text-primary" role="status">
               <span class="sr-only">Loading...</span>
             </div>
@@ -416,7 +416,7 @@
   
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" onclick="cancel($('#eventReceive').val())">Annuler</button>
-              <button type="button" class="btn btn-primary" onclick="confirm_form_typeC($('#form-Conge :input'),1,$('#modalConge'),congeInfos )">Valider</button>
+              <button type="button" class="btn btn-primary" onclick="confirm_form_event($('#form-Conge :input'), 1, $('#modalConge'), congeInfos)">Valider</button>
               <div class="spinner-border text-primary" role="status">
                 <span class="sr-only">Loading...</span>
               </div>
@@ -484,7 +484,7 @@
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="cancel($('#eventReceive').val())">Annuler</button>
-            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_event($('#form-absence :input'),1,$('#modalAbsence'),absenceInfos)">Valider</button>
+            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_event($('#form-absence :input'), 1, $('#modalAbsence'), absenceInfos)">Valider</button>
             <div class="spinner-border text-primary" role="status">
               <span class="sr-only">Loading...</span>
             </div>
@@ -552,7 +552,7 @@
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="cancel($('#eventReceive').val())">Annuler</button>
-            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_event($('#form-arret :input'),2,$('#modalArret'),arretInfos)">Valider</button>
+            <button type="button" class="btn btn-primary" type="submit" onclick="confirm_form_event($('#form-arret :input'), 2, $('#modalArret'), arretInfos)">Valider</button>
             <div class="spinner-border text-primary" role="status">
               <span class="sr-only">Loading...</span>
             </div>
@@ -1001,7 +1001,7 @@
   
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" onclick="cancelModalAddEvent()">Annuler</button>
-              <button id="btn-confirm-demandeconge" type="button" class="btn btn-primary" type="submit" onclick="confirm_form_addEvent()">Valider</button>
+              <button id="btn-confirm-demandeconge" type="button" class="btn btn-primary" type="submit" onclick="confirm_form_event($('#form-addEvent :input'), 4, $('#modalAddEvent'), $('#typeEvent').val())">Valider</button>
               <div class="spinner-border text-primary" role="status">
                 <span class="sr-only">Loading...</span>
               </div>
