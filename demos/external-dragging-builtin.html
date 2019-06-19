@@ -167,7 +167,6 @@
           </div>
         </div>
       </div>
-      </div>
     </div>
 
     <!-- -------- Modal 2  Validation d'une demande de congé ---------- --> 
@@ -241,7 +240,7 @@
 
           <div class="modal-footer">
               <button type="button" class="btn btn-danger" onclick="denyDemandeConge($('#eventClicked').val())" data-dismiss="modal">Refuser</button>
-              <button type="button" class="btn btn-primary" onclick="validation_demande_conge($('#eventClicked').val())">Valider</button>
+              <button type="button" class="btn btn-primary" onclick="confirm_form_event($('#form-validation-conge :input'), 1, $('#modalValidationConge'), demandeCongeValidInfos)">Valider</button>
               <div class="spinner-border text-primary" role="status">
                 <span class="sr-only">Loading...</span>
               </div>
@@ -1012,7 +1011,6 @@
     
     <!-- -------- Calendrier ---------- -->
     <div id='calendar'></div>
-
   </div>
 </body>
 </html>

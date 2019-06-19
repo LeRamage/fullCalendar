@@ -603,11 +603,11 @@ function deleteManagment(eventsToRemove){
       _dates = createDateArray(eventsToRemove[0].start,eventsToRemove[0].end);
   }
 
-  else if(eventsToRemove.length == 3){
+  else if(eventsToRemove.length == 3 && (eventsToRemove[1].classNames[0] != 'specialPresent' && eventsToRemove[2].classNames[0] != 'specialPresent')){
     if(moment(eventsToRemove[1].start).isBefore(eventsToRemove[0].start,'days'))
-    _dates = createDateArray(eventsToRemove[1].start,eventsToRemove[0].end)
-  else
-    _dates = createDateArray(eventsToRemove[0].start,eventsToRemove[1].start)
+      _dates = createDateArray(eventsToRemove[1].start,eventsToRemove[0].end)
+    else
+      _dates = createDateArray(eventsToRemove[0].start,eventsToRemove[1].start)
   }
 
   else{
