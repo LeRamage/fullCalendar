@@ -54,34 +54,33 @@ function pre_traitement(form,modal,isTypeAddE,isTypeC){
   
 // --------- Permet de récupérer l'objet qui stocke les infos du type d'évènement créé (pour modalAddEvent) // 
 function setIdInfo(idInfo){
-    let _idInfo;
     switch(idInfo){
         case 'demandeConge':
-        _idInfo = demandeCongesInfos;
-        break;
+            idInfo = demandeCongesInfos;
+            break;
         case "conge":
-        _idInfo = congeInfos;
-        break;
+            idInfo = congeInfos;
+            break;
         case "absence":
-        _idInfo = absenceInfos;
-        break;
+            idInfo = absenceInfos;
+            break;
         case "arret":
-        _idInfo = arretInfos;
-        break;
+            idInfo = arretInfos;
+            break;
         case "teletravail":
-        _idInfo = teletravailInfos;
-        break;
+            idInfo = teletravailInfos;
+            break;
         case "formation":
-        _idInfo = formationInfos;
-        break;
+            idInfo = formationInfos;
+            break;
         case "rdv_pro":
-        _idInfo = rdv_proInfos;
-        break;
+            idInfo = rdv_proInfos;
+            break;
         case "recup":
-        _idInfo = recupInfos;
-        break;
+            idInfo = recupInfos;
+            break;
     }
-    return _idInfo;
+    return idInfo;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
