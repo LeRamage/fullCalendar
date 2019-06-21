@@ -18,7 +18,7 @@ function createBooleans(modal){
 /////////////////////////////////////////////////////////////////
 
   
-// --------- Pre-traitement de la création d'évènements : créer les variables pour le traitement //
+// --------- Pré-traitement de la création d'évènements : créer les variables pour le traitement //
 function pre_traitement(form,modal,isTypeAddE,isTypeC){
     // Variables //
     let _variables = create_variables(form, isTypeC, isTypeAddE);
@@ -85,7 +85,7 @@ function setIdInfo(idInfo){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   
-// --------- Modifie le solde de conge de l'employé si l'évènement créer est de type Congé --------- //
+// --------- Modifie le solde de conge de l'employé si l'évènement créé est de type Congé --------- //
 function modifSolde(isTypeC,isTypeAddE,nbrOfDays,resourceId){
     if(isTypeC){
         if(isTypeAddE){

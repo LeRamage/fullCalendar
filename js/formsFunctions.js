@@ -15,11 +15,11 @@ function confirm_form_event(form, nbrOfSlice, modal, idInfo){
   let inputsValid = checkIfInputValid(form, variables[0].start, variables[0].end, variables[0].startHour, variables[0].endHour, isTypeC, isTypeAddE, variables[0].event);
 
   if(inputsValid){
-      let soldeIsGood = true;
+      let allGood = true;
       // Check le solde de Conge si l'évenement est de type conge ou demande de conge
       if(isTypeC)
-        soldeIsGood = checkSolde(form,variables[0].event, variables[0].nbrOfDays , modal, isTypeC, isTypeAddE);
-      if(soldeIsGood){
+          allGood = checkSolde(form,variables[0].event, variables[0].nbrOfDays , modal, isTypeC, isTypeAddE);
+      if(allGood){
           toggle_invalid_isSame(form,isTypeC,isTypeAddE);
           if(isConge)
               modifSolde(isTypeC,isTypeAddE,variables[0].nbrOfDays,variables[0].resourceId);
