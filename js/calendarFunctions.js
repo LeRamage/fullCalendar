@@ -1,61 +1,66 @@
 /* --------- Check si un évenemment existe à/aux dates(s) du drop 
              Si celui-ci est de type présent / ferié le drop est possible, sinon erreur --------- */
-function thisDateHasEvent(start,end,resourceId,isTrue = false,startHour = NaN,endHour = NaN){
+function thisDateHasEvent(start,end,resourceId,isTrue = false,startHour,endHour){
   let hasNext = false;
   let allEvents = calendar.getEvents();
   if(isTrue)
     allEvents.splice(allEvents.length - 1);
   let daysToCheck = createDateArray(start,end);
   let eventsToRemove = [];
-
+  
   if(moment(start).isSame(moment(end),'day')){ // External Event = 1 journée
-    let allEventsFilter = allEvents.filter(e => moment(e.start).isSame(moment(start),'day'))
-    if(allEventsFilter.length == 0){
-      eventsToRemove.push('thisDateIsEmpty');
-    }
-    else{
-      allEventsFilter = allEventsFilter.filter(e=>e.getResources()[0].id == resourceId)
-      allEventsFilter.forEach(function(e){
-        if(e.classNames[0] == 'present' || e.classNames[0] == 'ferie_WE' || e.classNames[0] == 'specialPresent'){
-            eventsToRemove.push(e); 
-        } 
-        else{
-          if( !(moment(e.start).hour() == 13 && endHour == 'Après-midi') && !(moment(e.end).hour() == 12 && startHour == 'Après-midi') )
-            hasNext = true;
-        }         
-      })
-    }
+      let allEventsFilter = allEvents.filter(e => moment(e.start).isSame(moment(start),'day'))
+      let ETR = pushEventsToRemove(allEventsFilter,resourceId,startHour,endHour);
+      eventsToRemove = ETR[0];
+      hasNext = ETR[1];
   }
-
+  
   else{ // External Event = plrs journées
-    let allEventsFilter = allEvents.filter(e => daysToCheck.find(date => moment(date).isSame(moment(e.start),'day') || moment(date).isSame(e.end,'day')))
-    if(allEventsFilter.length == 0){
-      eventsToRemove.push('thisDateIsEmpty');
-    }
-    else{
-      allEventsFilter = allEventsFilter.filter(e=>e.getResources()[0].id == resourceId)
-      allEventsFilter.forEach(function(e){
-        if(e.classNames[0] == 'present' || e.classNames[0] == 'ferie_WE' || e.classNames[0] == 'specialPresent'){
-            eventsToRemove.push(e); 
-        }  
-        else{
-          if( !(moment(e.start).hour() == 13 && endHour == 'Après-midi') && !(moment(e.end).hour() == 12 && startHour == 'Après-midi') )
-            hasNext = true;
-        }
-      })
-    }
+      let allEventsFilter = allEvents.filter(e => daysToCheck.find(date => moment(date).isSame(moment(e.start),'day') || moment(date).isSame(e.end,'day')))
+      let ETR = pushEventsToRemove(allEventsFilter,resourceId,startHour,endHour);
+      eventsToRemove = ETR[0];
+      hasNext = ETR[1];
   }
-
+  
   if(hasNext)
-    eventsToRemove.push(hasNext);
-
+      eventsToRemove.push(hasNext);
+  
   return eventsToRemove;
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////
+          
+          
+/* --------- selectionne les évènements à retirer
+              Si un évènement autre que présent se trouve sur la plage de date, impossible de créer l'évènement --------- */
+function pushEventsToRemove(allEventsFilter,resourceId,startHour,endHour){
+    let _eventsToRemove = [];
+    let _hasNext = false;
+    if(allEventsFilter.length == 0){
+        _eventsToRemove.push('thisDateIsEmpty');
+    }
+    else{
+        allEventsFilter = allEventsFilter.filter(e=>e.getResources()[0].id == resourceId)
+        allEventsFilter.forEach(function(e){
+            if(e.classNames[0] == 'present' || e.classNames[0] == 'ferie_WE' || e.classNames[0] == 'specialPresent'){
+                _eventsToRemove.push(e); 
+            }  
+            else{
+                if( !(moment(e.start).hour() == 13 && endHour == 'Après-midi') && !(moment(e.end).hour() == 12 && startHour == 'Après-midi') )
+                    _hasNext = true;
+            }
+          })
+    }
+    return [_eventsToRemove,_hasNext];
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 // --------- Creer ID unique --------- //
 function create_unique_ID(){
   return '_' + Math.random().toString(36).substr(2, 9);
 }
+////////////////////////////////////////
+
 
 // --------- Tableau contenant toutes les dates entre une start date et une end date  --------- //
 function createDateArray(start,end){
@@ -69,45 +74,21 @@ function createDateArray(start,end){
   }
   return dateArray;
 }
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// --------- Ajout dynamique de l'évenement Présence + Weekend --------- AJOUT DYNAMIQUE EN FONCTION DU NOMBRE D'EMPLOYES //
+// --------- Ajout dynamique de l'évenement Présence + Weekend + Recap --------- //
 function createDefault(){
-  let view = calendar.view;
   let events = [];
-  let dates;
-  if(moment().isBetween(view.activeStart, view.activeEnd,'day') || moment().isSame(view.activeStart,'day') || moment().isSame(view.activeEnd,'day')){
-    dates = createDateArray(view.activeStart, view.activeEnd);
-  }
-  else{
-    dates = createDateArray(moment(view.activeStart).add(1,'days'), view.activeEnd);
-  }
-  let allEventsInView = calendar.getEvents().filter(e=>moment(e.start).isAfter(view.activeStart) || moment(e.end).isAfter(view.activeStart));
-  let employes = calendar.getResources().filter(r => r.id.includes('emp'));
+  let variables = createVariablesDefault();
+  let dates = variables[0], allEventsInView = variables[1], employes = variables[2];
 
   if(allEventsInView.length == 0){
     createDefaultFromDates(events,dates,employes)
   }
   else{
-      let dateWhereNotPutDefault = [];
+      let dateWhereNotPutDefault = setDateWhereNotPutDefault(allEventsInView);
       let datesWhereToPutDefault = [];
-
-      allEventsInView.forEach(e=>{
-        if(e.end != null){
-          let source = {
-            emp : e.getResources()[0].id,
-            dates : createDateArray(e.start,e.end)
-          }
-          dateWhereNotPutDefault.push(source);  
-        }
-        else{
-          let source = {
-            emp : e.getResources()[0].id,
-            dates : createDateArray(e.start,e.start)
-          }
-          dateWhereNotPutDefault.push(source);  
-        }
-      })
      
       employes.forEach(employe=>{
         filterPerEmploye = dateWhereNotPutDefault.filter(source => source.emp == employe.id)
@@ -126,6 +107,52 @@ function createDefault(){
         createDefaultRecap(dates)
   }
 }
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+// --------- Creation des variables pour createDefault() --------- //
+function createVariablesDefault(){
+  let view = calendar.view;
+  let _dates;
+  if(moment().isBetween(view.activeStart, view.activeEnd,'day') || moment().isSame(view.activeStart,'day') || moment().isSame(view.activeEnd,'day')){
+    _dates = createDateArray(view.activeStart, view.activeEnd);
+  }
+  else{
+    _dates = createDateArray(moment(view.activeStart).add(1,'days'), view.activeEnd);
+  }
+  let _allEventsInView = calendar.getEvents().filter(e=>moment(e.start).isAfter(view.activeStart) || moment(e.end).isAfter(view.activeStart));
+  let _employes = calendar.getResources().filter(r => r.id.includes('emp'));
+
+  return [_dates,_allEventsInView,_employes];
+}
+////////////////////////////////////////////////////////////////////
+
+
+// --------- retourne toutes les dates où il y a déjà un évènement de créé --------- //
+function setDateWhereNotPutDefault(allEventsInView){
+  let _dateWhereNotPutDefault = [];
+
+  allEventsInView.forEach(e=>{
+  if(e.end != null){
+      let source = {
+      emp : e.getResources()[0].id,
+      dates : createDateArray(e.start,e.end)
+      }
+      _dateWhereNotPutDefault.push(source);  
+  }
+  else{
+      let source = {
+      emp : e.getResources()[0].id,
+      dates : createDateArray(e.start,e.start)
+      }
+      _dateWhereNotPutDefault.push(source);  
+  }
+  })
+    
+  return _dateWhereNotPutDefault;
+}
+//////////////////////////////////////////////////////////////////////////////////////
+
 
 // --------- display Erreur--------- //
 function displayError(){
@@ -141,10 +168,11 @@ function displayError(){
     $('#eventReceive').val().remove();
   },10);
 }
+///////////////////////////////////////
+
 
 // --------- Ajout d'un évenement present qui prend une demi journée --------- //
-function addEventPresentIfMidDay(start,end,event,startHour,endHour){
-  
+function addEventPresentIfMidDay(start,end,event,startHour,endHour){  
   let _ID = event.extendedProps.ID;
   let eventPresent;
   let startPresent = start
@@ -171,6 +199,8 @@ function addEventPresentIfMidDay(start,end,event,startHour,endHour){
     calendar.addEvent(eventPresent);
   }
 }
+////////////////////////////////////////////////////////////////////////////////
+
 
 // --------- Ajout d'évenements present d'une demi journée ainsi que d'un demandeDeConge special --------- //
 function addSpecialEventPresentIfMidDay(start,end,event){
@@ -195,66 +225,83 @@ function addSpecialEventPresentIfMidDay(start,end,event){
   calendar.addEvent(eventPresent1);
   calendar.addEvent(eventPresent2);
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+// --------- modifie l'aparence d'un évènement qui commence ou fini sur un specialPresent --------- //
 function setWidthEvent(start,end,event){
   let e = calendar.getEvents().filter(e=> (moment(e.start).isSame(start,'day') || moment(e.start).isSame(end,'day')) && e.classNames[0] == 'specialPresent' && e.getResources()[0].id == event.getResources()[0].id);
+  let specialPresent = e[0];
   let _ID = event.extendedProps.ID;
 
   if(moment(start).isSame(end,'day')){
-    if(moment(e[0].start).hour() == 9){
-      event.setProp('classNames',[event.classNames[0],'specialRight']);
-      e[0].remove();
+    if(moment(specialPresent.start).hour() == 9){
+      setPropOfEvent_RemoveSp([event.classNames[0],'specialRight'],event,specialPresent);
     }
-    else if(moment(e[0].start).hour() == 13){
-      event.setProp('classNames',[event.classNames[0],'specialLeft']);
-      e[0].remove();
+    else if(moment(specialPresent.start).hour() == 13){
+      setPropOfEvent_RemoveSp([event.classNames[0],'specialLeft'],event,specialPresent);
     }
   } 
    
   else{
-    let _start;
-    let _end;
-    let _classNames;
-    let eSplit;
-    if(moment(e[0].start).isSame(start,'day')){
-      _start = moment(start).add(1,'days')._d;
-      _end = end;
-      _classNames = [event.classNames[0],'specialLeft'];
-      eSplit = {
-        classNames:_classNames,
-        start: start,
-        end:start,
-        resourceId:event.getResources()[0].id
+      let data =  setData(specialPresent,start,end,event);
+      let ESplitStart = data[0],  ESplitEnd = data[1],  ESplitClassNames = data[2], resetEventStart = data[3], resetEventEnd = data[4];
+      let eSplit = {
+          classNames:ESplitClassNames,
+          start: ESplitStart,
+          end:ESplitEnd,
+          resourceId:event.getResources()[0].id
       }
-    }
-    else if(moment(e[0].start).isSame(end,'day')){
-      _start = start;
-      _end = moment(end).subtract(1,'days')._d;
-      _classNames = [event.classNames[0],'specialRight'];
-      eSplit = {
-        classNames:_classNames,
-        start:end,
-        end:end,
-        resourceId:event.getResources()[0].id
-      }
-    }
-    let resetEvent = {
-      classNames:event.classNames[0],
-      start:_start,
-      end:_end,
-      resourceId:event.getResources()[0].id
-    };
+      let resetEvent = {
+          classNames:event.classNames[0],
+          start:resetEventStart,
+          end:resetEventEnd,
+          resourceId:event.getResources()[0].id
+      };
 
-    e[0].remove();
-    event.remove();
-    calendar.addEvent(resetEvent);
-    calendar.addEvent(eSplit);
-    resetEvent = calendar.getEvents()[calendar.getEvents().length-2];
-    resetEvent.setExtendedProp('ID',_ID);
-    eSplit = calendar.getEvents()[calendar.getEvents().length-1];
-    eSplit.setExtendedProp('ID',_ID);
+      specialPresent.remove();
+      event.remove();
+      calendar.addEvent(resetEvent);
+      calendar.addEvent(eSplit);
+      resetEvent = calendar.getEvents()[calendar.getEvents().length-2];
+      resetEvent.setExtendedProp('ID',_ID);
+      eSplit = calendar.getEvents()[calendar.getEvents().length-1];
+      eSplit.setExtendedProp('ID',_ID);
   }
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// --------- ajoute la class specialRight/Left et supprime le specialPresent --------- //
+function setPropOfEvent_RemoveSp(classNames,event,specialPresent){
+  event.setProp('classNames',classNames);
+  specialPresent.remove();
+}
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+// --------- data pour créer eSplit et resetEvent --------- //
+function setData(specialPresent,start,end,event){
+  let ESplitStart,  ESplitEnd,  ESplitClassNames, resetEventStart, resetEventEnd;
+  if(moment(specialPresent.start).isSame(start,'day')){
+      ESplitStart = start;
+      ESplitEnd = start;
+      resetEventStart = moment(start).add(1,'days')._d;
+      resetEventEnd = end;
+      ESplitClassNames = [event.classNames[0],'specialLeft'];
+  }
+  else if(moment(specialPresent.start).isSame(end,'day')){
+      ESplitStart = end;
+      ESplitEnd = end;
+      resetEventStart = start;
+      resetEventEnd = moment(end).subtract(1,'days')._d;
+      ESplitClassNames = [event.classNames[0],'specialRight'];
+  }
+
+  return[ESplitStart,  ESplitEnd,  ESplitClassNames, resetEventStart, resetEventEnd];
+}
+////////////////////////////////////////////////////////////////
+
 
 // --------- permet de modifier l'heure de départ et de fin d'un évenement --------- //
 function setHoursOfEvent(startHour,endHour,start,end,event,matineesIsChecked = false,apremsIsChecked = false){
@@ -270,6 +317,8 @@ function setHoursOfEvent(startHour,endHour,start,end,event,matineesIsChecked = f
 
   event.setDates(start,end); 
 }
+//////////////////////////////////////////////////////////////////////////////////////
+
 
 // --------- Gère tout ce qu'il faut lors de la création d'un nouvel évènement  --------- //
 function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal){
@@ -452,6 +501,8 @@ function deleteEvent(eventRightClicked, isAmodif = false){
   $('#modalDelete').modal('hide');
   setHeightOfRow();
 }
+//////////////////////////////////////////////////////////////////////////////
+
 
 // --------- Permet d'obtenir la longueur des evenements --------- //
 function getWidthOfEvent(){
