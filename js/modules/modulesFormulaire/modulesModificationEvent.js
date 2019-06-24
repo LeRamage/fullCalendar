@@ -71,6 +71,7 @@ function createModifBoolean(event,variables,oldVariables){
 }
 //////////////////////////////////////////////////////////////////
   
+
 // --------- Modifie un évènements autre que Congé ou Demande de Congé --------- //
 function modif_event(event,variables){
     let resourceId = event.getResources()[0].id;

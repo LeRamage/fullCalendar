@@ -31,6 +31,7 @@
   <script src="js/modules/moduleCalendarFunction/gestionTotauxPresence.js"></script>
   <script src="js/modules/moduleCalendarFunction/informations.js"></script>
   <script src="js/modules/moduleCalendarFunction/suppressionEvent.js"></script>
+  <script src="js/modules/modulesCalendar/moduleCalendar.js"></script>
 </head>
 <body>
 
@@ -46,6 +47,10 @@
   <div class="alert alert-danger fade show" role="alert" id='alertSoldeInsuffisant' style="display:none;text-align: center">
     Le <a href="#" class="alert-link">solde de congé</a> de cet employé est insuffisant : il reste <p id='soldeRestant' ></p> congés disponible
   </div>  
+
+  <div class="alert alert-danger fade show" role="alert" id='alertErreurUnknown' style="display:none;text-align: center">
+    Une <a href="#" class="alert-link">erreur</a> est survenu ...
+  </div>
   <!-- -------- Stockage event ---------- -->
   <div id='eventClicked' style="display:none"></div>  
   <div id='eventReceive' style='display: none'></div>

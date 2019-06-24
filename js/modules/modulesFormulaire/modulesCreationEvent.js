@@ -13,7 +13,7 @@ function createBooleans(modal){
         _isTypeC = true;
     if(modal[0].id == 'modalConge' || modal[0].id == 'modalValidationConge' || (modal[0].id == 'modalAddEvent' && $('#typeEvent option:selected').val() == 'conge'))
         _isConge = true;
-    return [_isTypeAddE, _isTypeC, _isConge]
+    return [_isTypeAddE, _isTypeC, _isConge];
 }
 /////////////////////////////////////////////////////////////////
 
@@ -31,12 +31,7 @@ function pre_traitement(form,modal,isTypeAddE,isTypeC){
     }
     else if(isTypeAddE){
         resourceId = $("#eventDblClicked").val().getResources()[0].id;
-        event = {
-            classNames: _variables[0].className,
-            start: _variables[0].start,
-            end: _variables[0].end,
-            resourceId: resourceId,
-        }; 
+        event = createEvent(_variables[0].className,_variables[0].start,_variables[0].end,resourceId); 
         calendar.addEvent(event);
         event = calendar.getEvents()[calendar.getEvents().length - 1]; 
     }
@@ -123,57 +118,62 @@ function infoManagment(isTypeAddE,variables,form,idInfo,nbrOfSlice,event,resourc
   
 // --------- Vérifie que les inputs des modals sont valides --------- //
 function checkIfInputValid(form, start, end, startHour, endHour, isTypeC, isTypeAddE, event){
-    let startIndex = 1;
-    if(isTypeC)
-        startIndex = 2;
-    if(isTypeAddE){
-        startIndex = 3;
+    try{
+        let startIndex = 1;
+        if(isTypeC)
+            startIndex = 2;
+        if(isTypeAddE){
+            startIndex = 3;
+        }
+             
+        if(!(start <= end)){
+            $('.invalid').show()
+            var element = document.getElementById(form[startIndex].id);
+            element.classList.add('not-valid');
+            event.remove();
+            toggle_spinner(false);
+            return false;
+        }
+        else if(
+            (moment(start).isSame(moment(end),'day')) 
+            && (startHour =='Après-midi' && endHour == 'Après-midi')
+        ){
+            $('.isTheSame').show();
+            var element = document.getElementById(form[startIndex+1].id);
+            element.classList.add('not-valid');
+            element = document.getElementById(form[startIndex+2].id);
+            element.classList.add('not-valid');
+            event.remove();
+            toggle_spinner(false);
+            return false;
+        }
+        else  
+            return true;
     }
-        
-  
-    if(!(start <= end)){
-        $('.invalid').show()
-        var element = document.getElementById(form[startIndex].id);
-        element.classList.add('not-valid');
-        event.remove();
-        toggle_spinner(false);
+    catch{
         return false;
     }
-  
-    else if(
-        (moment(start).isSame(moment(end),'day')) 
-        && (startHour =='Après-midi' && endHour == 'Après-midi')
-    ){
-        $('.isTheSame').show();
-        var element = document.getElementById(form[startIndex+1].id);
-        element.classList.add('not-valid');
-        element = document.getElementById(form[startIndex+2].id);
-        element.classList.add('not-valid');
-        event.remove();
-        toggle_spinner(false);
-        return false;
-    }
-    else  
-        return true;
 }
 /////////////////////////////////////////////////////////////////////
 
   
 // --------- Vérifier si l'employé à suffisament de solde de congé disponible --------- //
 function checkSolde(form,event,nbrOfDays,modal,isTypeC,isTypeAddE){
-    if( soldeConge[event.getResources()[0].id] - nbrOfDays < 0 ){
-        cancelModal(form,modal,isTypeC,isTypeAddE,event);
-        $('#soldeRestant').html();
-        $('#soldeRestant').html(soldeConge[event.getResources()[0].id].toString()); // est faux si modal = modalAddEvent
-        $('#alertSoldeInsuffisant').css('opacity', 1).slideDown();
-        setTimeout(function(){
-        $('#alertSoldeInsuffisant').fadeTo(500, 0).slideUp(500);
-        }, 3000);
-        toggle_spinner(false);
+    try{
+        if( soldeConge[event.getResources()[0].id] - nbrOfDays < 0 ){
+            cancelModal(form,modal,isTypeC,isTypeAddE,event);
+            $('#soldeRestant').html();
+            $('#soldeRestant').html(soldeConge[event.getResources()[0].id].toString()); // est faux si modal = modalAddEvent
+            displayAlert($('#alertSoldeInsuffisant'));
+            toggle_spinner(false);
+            return false;
+        }
+        else
+            return true;
+    }
+    catch{
         return false;
     }
-    else
-        return true;
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -256,19 +256,11 @@ function cancelModal(form,modal,isTypeC,isTypeAddE,event){
   
 // --------- remove event et recrée un event avec les nouvelles propriété --------- //
 function resetEvent(event,classNames,variables,resourceId){
-    let resetEvent;
-    let _extendedProps;
-    resourceId = event.getResources()[0].id;
-    resetEvent = {
-      classNames : classNames,
-      start:variables[0].start,
-      end:variables[0].end,
-      resourceId:resourceId,
-    };
-    _extendedProps = event.extendedProps.ID;
+    resourceId = event.getResources()[0].id;    
+    let resetEvent = createEvent(classNames,variables[0].start,variables[0].end,resourceId);
+    let _extendedProps = event.extendedProps.ID;
     deleteEvent(event,true);
-    calendar.addEvent(resetEvent);
-    
+    calendar.addEvent(resetEvent);    
     resetEvent = calendar.getEvents()[calendar.getEvents().length-1]
     resetEvent.setExtendedProp('_ID',_extendedProps);
     event = resetEvent;
@@ -276,4 +268,4 @@ function resetEvent(event,classNames,variables,resourceId){
 }
 ////////////////////////////////////////////////////////////////////////////////////
   
-  
+ 

@@ -1,3 +1,8 @@
+////////////////////////////////////
+// Fonctionnalités du calendrier //
+///////////////////////////////////
+
+
 /* --------- Check si un évenemment existe à/aux dates(s) du drop 
              Si celui-ci est de type présent / ferié le drop est possible, sinon erreur --------- */
 function thisDateHasEvent(start,end,resourceId,isTrue = false,startHour,endHour){
@@ -28,45 +33,6 @@ function thisDateHasEvent(start,end,resourceId,isTrue = false,startHour,endHour)
   return eventsToRemove;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-          
-
-// --------- Creer ID unique --------- //
-function create_unique_ID(){
-  return '_' + Math.random().toString(36).substr(2, 9);
-}
-////////////////////////////////////////
-
-
-// --------- Tableau contenant toutes les dates entre une start date et une end date  --------- //
-function createDateArray(start,end){
-  let
-    dateArray = [],
-    dt = new Date(start);
-
-  while (moment(dt).isSameOrBefore(end) || moment(dt).isSame(end,'day')) {
-    dateArray.push(new Date(dt));
-    dt.setDate(dt.getDate() + 1);
-  }
-  return dateArray;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-// --------- display Erreur--------- //
-function displayError(){
-  $('#alertD').show();
-  $('#modalDemandeConge').modal('hide');
-
-  $('#alertD').css('opacity', 1).slideDown();
-  setTimeout(function(){
-    $('#alertD').fadeTo(500, 0).slideUp(500)
-  }, 3000);
-        
-  setTimeout(function(){
-    $('#eventReceive').val().remove();
-  },10);
-}
-///////////////////////////////////////
 
 
 // --------- Gère tout ce qu'il faut lors de la création d'un nouvel évènement  --------- //
@@ -106,25 +72,19 @@ function deleteEvent(eventRightClicked, isAmodif = false){
 
   // traitement
   if( (eventRightClicked.classNames[0] == 'conge' || eventRightClicked.classNames[0] == 'demandeCongeValid') && moment(eventRightClicked.start).isAfter(moment()) && !isAmodif){
-    restoreSoldeConge(eventRightClicked.getResources()[0].id,eventRightClicked.start,eventRightClicked.end,calendar.getEvents().filter(e=>e.extendedProps.ID = _ID && e.classNames[0] == 'specialPresent').length)
+    restoreSoldeConge(eventRightClicked.getResources()[0].id,eventRightClicked.start,eventRightClicked.end,calendar.getEvents().filter(e=>e.extendedProps.ID = _ID && e.classNames[0] == 'specialPresent').length);
   }
   removeInfo(eventRightClicked.classNames[0],eventRightClicked.start,eventRightClicked.getResources()[0].id);
-  events = replaceDeletedByDefault(dates,events,hasSpecialRight,hasSpecialLeft,eventsToRemove,eventRightClicked) 
+  events = replaceDeletedByDefault(dates,events,hasSpecialRight,hasSpecialLeft,eventsToRemove,eventRightClicked);
   calendar.addEventSource(events);
-  fusion(hasSpecialLeft,hasSpecialRight,eventRightClicked)
+  fusion(hasSpecialLeft,hasSpecialRight,eventRightClicked);
   
   // post traitement
   $('#modalDelete').modal('hide');
   setHeightOfRow();
 }
-//////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 
-
-// --------- Permet d'obtenir la longueur des evenements --------- //
-function getWidthOfEvent(){
-  return width_event = $('.present').width();
-}
-////////////////////////////////////////////////////////////////////
 
 // --------- Update les totaux de présence après l'ajout d'un événement --------- //
 function updateTotalPresenceAtDate(event){
@@ -157,6 +117,48 @@ function updateTotalPresenceAtDate(event){
   }
 }
 ///////////////////////////////////////////////////////////////////////////////////
+          
+
+// --------- Creer ID unique --------- //
+function create_unique_ID(){
+  return '_' + Math.random().toString(36).substr(2, 9);
+}
+////////////////////////////////////////
+
+
+// --------- Tableau contenant toutes les dates entre une start date et une end date  --------- //
+function createDateArray(start,end){
+  let
+    dateArray = [],
+    dt = new Date(start);
+
+  while (moment(dt).isSameOrBefore(end) || moment(dt).isSame(end,'day')) {
+    dateArray.push(new Date(dt));
+    dt.setDate(dt.getDate() + 1);
+  }
+  return dateArray;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// --------- display Erreur--------- //
+function displayError(){
+  $('#alertD').show();
+  $('#modalDemandeConge').modal('hide');
+  displayAlert($('#alertD'));
+        
+  setTimeout(function(){
+    $('#eventReceive').val().remove();
+  },10);
+}
+///////////////////////////////////////
+
+
+// --------- Permet d'obtenir la longueur des evenements --------- //
+function getWidthOfEvent(){
+  return width_event = $('.present').width();
+}
+////////////////////////////////////////////////////////////////////
 
 
 // --------- Permet de conserver la hauteur des fc-widget-content --------- //

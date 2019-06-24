@@ -1,7 +1,14 @@
+/////////////////
+// Calendrier //
+////////////////
+
+
+// --------- Variables Globales --------- //
 var calendar ;
 var demandeCongesInfos = [], demandeCongeValidInfos = [], congeInfos = [], absenceInfos = [], arretInfos = [], teletravailInfos = [], formationInfos = [], rdv_proInfos = [], recupInfos = [];
 var width_event;
 var soldeConge = []; 
+///////////////////////////////////////////
 
 document.addEventListener('DOMContentLoaded', function() {
     var Calendar = FullCalendar.Calendar;
@@ -32,8 +39,11 @@ document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
 
     calendar = new Calendar(calendarEl, {
+    // --------- Plugins --------- //
     plugins: [ 'resourceTimeline','interaction'],
+    ///////////////////////////////
     
+    // --------- Display --------- //
     defaultView: 'custom3Month',
     timezone : 'local',
     locale: 'fr',
@@ -44,7 +54,9 @@ document.addEventListener('DOMContentLoaded', function() {
     contentHeight: 'auto',
     resourceAreaWidth: '10%',
     firstDay:1,
+    ///////////////////////////////////
 
+    // --------- Custom Buttons --------- //
     customButtons: {
       myCustomButton: {
         text: 'Aller à la date',
@@ -53,7 +65,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
     },
+    ///////////////////////////////////////
 
+    // --------- Custom Views --------- //
     views: {
       custom3Month:{
         type:'resourceTimeline',
@@ -74,13 +88,17 @@ document.addEventListener('DOMContentLoaded', function() {
         buttonText: '1 jour',
       }
     },
+    /////////////////////////////////////
 
+    // --------- Header --------- //
     header: {
       left: 'prev,next today, myCustomButton',
       center: 'title',
       right: 'customDay,customWeek,custom3Month'
     },
-
+    ///////////////////////////////
+    
+    // ---------  Ressources --------- //
     resourceLabelText: 'Date',
     resourceGroupField: 'type',
     resources: [
@@ -90,148 +108,72 @@ document.addEventListener('DOMContentLoaded', function() {
       { id: 'emp4', type: 'Employés',title: 'Alain Dii' },
       { id: 'recap-present', type:'Récapitulatif', title: 'Total Présences'},
     ],
+    ///////////////////////////////////
     
+    // --------- Fonction clique simple sur un événement (autre que présent / special Présent / recap) --------- //
     eventClick: function(e) {
       var eventClassNames = e.event.classNames[0];
       $('#eventClicked').val(e.event);
-
-      if(eventClassNames == 'demandeConge'){
-        $('#modalValidationConge').modal({backdrop: 'static'});        
-        demandeCongesInfos.forEach(function(info){
-          dateConge = new Date(info["dateDebut"]);
-          if(moment(dateConge).isSame(moment(e.event.start),'day') && info['emp_id'] == e.event.getResources()[0].id){
-            Object.keys(info).forEach(function(element){
-              $('#V'+element).val(info[element]);
-            })
-            return; // ?
-          }
-        }) 
-        $('#modalValidationConge').modal('show');
-      }
-      else if(eventClassNames == 'conge'){
-        $('#modalInfoEvent').modal({backdrop: 'static'});
-        $('#info-type-conge').show();
-        remplirModalInfoEvent(congeInfos,e.event,$('#modalInfoEvent'));
-      }
-      else if(eventClassNames == 'absence'){
-        $('#modalInfoEvent').modal({backdrop: 'static'});
-        $('#info-type-conge').hide();
-        remplirModalInfoEvent(absenceInfos,e.event,$('#modalInfoEvent'));       
-      }  
-      else if(eventClassNames == 'arret'){
-        $('#modalInfoEvent').modal({backdrop: 'static'});
-        $('#info-type-conge').hide();
-        remplirModalInfoEvent(arretInfos,e.event,$('#modalInfoEvent'));
-      }  
-      else if(eventClassNames == 'teletravail'){
-        $('#modalInfoEvent').modal({backdrop: 'static'});
-        $('#info-type-conge').hide();
-        remplirModalInfoEvent(teletravailInfos,e.event,$('#modalInfoEvent'));
-      } 
-      else if(eventClassNames == 'formation'){
-        $('#modalInfoEvent').modal({backdrop: 'static'});
-        $('#info-type-conge').hide();
-        remplirModalInfoEvent(formationInfos,e.event,$('#modalInfoEvent'));
-      }  
-      else if(eventClassNames == 'rdv_pro'){
-        $('#modalInfoEvent').modal({backdrop: 'static'});
-        $('#info-type-conge').hide();
-        remplirModalInfoEvent(rdv_proInfos,e.event,$('#modalInfoEvent'));
-      }     
-      else if(eventClassNames == 'recup'){
-        $('#modalInfoEvent').modal({backdrop: 'static'});
-        $('#info-type-conge').hide();
-        remplirModalInfoEvent(recupInfos,e.event,$('#modalInfoEvent'));
-      }
-      else if(eventClassNames == 'demandeCongeValid'){
-        $('#modalInfoEvent').modal({backdrop: 'static'});
-        $('#info-type-conge').show();
-        demandeCongeValidInfos.forEach(function(info){
-          date = new Date(info["VdateDebut"]);
-          if(moment(date).isSame(moment(e.event.start),'day') && info['emp_id'] == e.event.getResources()[0].id){
-            Object.keys(info).forEach(function(element){
-              $('#I'+element.slice(1)).val(info[element]);
-            })
-            return; // ?
-          }
-        })
-        $('#modalInfoConge').modal('show')
-      } 
+      
+      if(eventClassNames == 'demandeConge')
+        remplirModalInfoEvent(demandeCongesInfos,e.event,$('#modalValidationConge'),'V',0,false);     
+      else if(eventClassNames == 'conge')
+        showFormInfo($('#modalInfoEvent'),congeInfos,e.event);    
+      else if(eventClassNames == 'absence')
+        showFormInfo($('#modalInfoEvent'),absenceInfos,e.event);            
+      else if(eventClassNames == 'arret')
+        showFormInfo($('#modalInfoEvent'),arretInfos,e.event);     
+      else if(eventClassNames == 'teletravail')
+        showFormInfo($('#modalInfoEvent'),teletravailInfos,e.event);      
+      else if(eventClassNames == 'formation')
+        showFormInfo($('#modalInfoEvent'),formationInfos,e.event);       
+      else if(eventClassNames == 'rdv_pro')
+        showFormInfo($('#modalInfoEvent'),rdv_proInfos,e.event);           
+      else if(eventClassNames == 'recup')
+        showFormInfo($('#modalInfoEvent'),recupInfos,e.event);      
+      else if(eventClassNames == 'demandeCongeValid')
+        remplirModalInfoEvent(demandeCongeValidInfos,e.event,$('#modalInfoEvent'),'I',1,true);       
     },
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // --------- Fonction quand un external event est reçu par le calendrier --------- //
     eventReceive: function(e){
       $('#eventReceive').val(e.event);
     },
+    ////////////////////////////////////////////////////////////////////////////////////
 
+    // --------- Fonction quand un événement à l'intérieur du calendrier est dropé ailleurs --------- //
     eventDrop: function(e){
       setHeightOfRow();
     },
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // --------- Fonction quand un external event est dropé sur le calendrier --------- //
     drop: function(arg) {  
       let Cid = arg.draggedEl.id;
 
-      if(Cid == 'demandeConge'){ 
-        $('#modalDemandeConge').modal({backdrop: 'static'});
-        $('#modalDemandeConge').modal('show');
-        $('#dateDebut').val(arg["dateStr"].slice(0,10));
-        $('#dateFin').val(arg["dateStr"].slice(0,10));     
-      }
-
-      else if(Cid == 'conge'){
-        $('#modalConge').modal({backdrop: 'static'});
-        $('#modalConge').modal('show');
-        $('#CdateDebut').val(arg["dateStr"].slice(0,10));
-        $('#CdateFin').val(arg["dateStr"].slice(0,10));
-      }
-      
-      else if(Cid == 'absence'){
-        $('#modalAbsence').modal({backdrop: 'static'});
-        $('#modalAbsence').modal('show');
-        $('#AdateDebut').val(arg["dateStr"].slice(0,10));
-        $('#AdateFin').val(arg["dateStr"].slice(0,10));
-      }
-
-      else if(Cid == 'arret'){
-        $('#modalArret').modal({backdrop: 'static'});
-        $('#modalArret').modal('show');
-        $('#ArdateDebut').val(arg["dateStr"].slice(0,10));
-        $('#ArdateFin').val(arg["dateStr"].slice(0,10));
-      }
-
-      else if(Cid == 'teletravail'){
-        $('#modalTeletravail').modal({backdrop: 'static'});
-        $('#modalTeletravail').modal('show');
-        $('#TdateDebut').val(arg["dateStr"].slice(0,10));
-        $('#TdateFin').val(arg["dateStr"].slice(0,10));
-      }
-
-      else if(Cid == 'formation'){
-        $('#modalFormation').modal({backdrop: 'static'});
-        $('#modalFormation').modal('show');
-        $('#FdateDebut').val(arg["dateStr"].slice(0,10));
-        $('#FdateFin').val(arg["dateStr"].slice(0,10));
-      }
-
-      else if(Cid == 'rdv_pro'){
-        $('#modalRdvPro').modal({backdrop: 'static'});
-        $('#modalRdvPro').modal('show');
-        $('#RDVdateDebut').val(arg["dateStr"].slice(0,10));
-        $('#RDVdateFin').val(arg["dateStr"].slice(0,10));
-      }
-
-      else if(Cid == 'recup'){
-        $('#modalRecup').modal({backdrop: 'static'});
-        $('#modalRecup').modal('show');
-        $('#RdateDebut').val(arg["dateStr"].slice(0,10));
-        $('#RdateFin').val(arg["dateStr"].slice(0,10));
-      }
-      
+      if(Cid == 'demandeConge')
+        showFormOther($('#modalDemandeConge'),arg,'');     
+      else if(Cid == 'conge')
+        showFormOther($('#modalConge'),arg,'C');     
+      else if(Cid == 'absence')
+        showFormOther($('#modalAbsence'),arg,'A');     
+      else if(Cid == 'arret')
+        showFormOther($('#modalArret'),arg,'Ar');      
+      else if(Cid == 'teletravail')
+        showFormOther($('#modalTeletravail'),arg,'T');      
+      else if(Cid == 'formation')
+        showFormOther($('#modalFormation'),arg,'F');      
+      else if(Cid == 'rdv_pro')
+        showFormOther($('#modalRdvPro'),arg,'RDV'); 
+      else if(Cid == 'recup')
+        showFormOther($('#modalRecup'),arg,'R');     
       else if(Cid == 'ferie_WE'){
         setTimeout(function(){
           $('#eventReceive').val().remove();
         },10)
       }
-
+      
       else{
         let start = arg.date;
         let eventAtDropPlace = calendar.getEvents().filter(e => moment(e.start).isSame(moment(start),'day'));
@@ -241,12 +183,14 @@ document.addEventListener('DOMContentLoaded', function() {
           updateTotalPresenceAtDate($('#eventReceive').val()) 
         },10)          
       }
-
+      
       setTimeout(function(){
         setHeightOfRow();
       },100)
     },
+    /////////////////////////////////////////////////////////////////////////////////////
     
+    // --------- Fonction de rendu des events présent sur le calendrier --------- //
     eventRender: function(event) {   
       let element = $(event.el);
       element.css('border','none');
@@ -276,147 +220,54 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       }   
     },
-    
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // --------- Fonction de gestion des autorisations pour le drop d'external Event --------- //
     eventAllow: function(dropLocation, draggedEvent){
       events = calendar.getEvents().filter( e => moment(e.start).isSame(moment(dropLocation.start),'day'))
       events = events.filter(e=>e.getResources()[0].id == dropLocation.resource.id)
       if(events.find(e=>e.classNames[0] == 'present')){
-        if(draggedEvent.classNames[0] == 'demandeConge' || draggedEvent.classNames[0] == 'conge'){
-          if(soldeConge[draggedEvent.getResources()[0].id] > 0){
-            $('#dropLocation').val(dropLocation.resource.id);
-            setHeightOfRow();
-            $('#draggedEventIdEmp').val(draggedEvent.getResources()[0].id);
-            return true;
-          }
-          else{
-            setHeightOfRow();
-            $('#alertSoldeEmpty').css('opacity', 1).slideDown();
-            setTimeout(function(){
-              $('#alertSoldeEmpty').fadeTo(500, 0).slideUp(500)
-            }, 3000);
-            return false;
-          }
-        }
-        else{
-          $('#dropLocation').val(dropLocation.resource.id);
-          setHeightOfRow();
-          return true;
-        }
+          return allowDrop(draggedEvent,dropLocation);
       }
       else if(events.find(e=>e.classNames[0] == 'specialPresent')){
-        if(draggedEvent.classNames[0] == 'demandeConge' || draggedEvent.classNames[0] == 'conge'){
-          if(soldeConge[draggedEvent.getResources()[0].id] > 0){
-            $('#dropLocation').val(dropLocation.resource.id);
-            setHeightOfRow();
-            $('#draggedEventIdEmp').val(draggedEvent.getResources()[0].id);
-            return true;
-          }
-          else{
-            setHeightOfRow();
-            $('#alertSoldeEmpty').css('opacity', 1).slideDown();
-            setTimeout(function(){
-              $('#alertSoldeEmpty').fadeTo(500, 0).slideUp(500)
-            }, 3000);
-            return false;
-          }
-        }
-        else{
-          $('#dropLocation').val(dropLocation.resource.id);
-          setHeightOfRow();
-          return true;
-        }
+          return allowDrop(draggedEvent,dropLocation);
       }      
       else{
         setHeightOfRow();
         return false;
-      }   
-        
+      }         
     },
-
+    ////////////////////////////////////////////////////////////////////////////////////////////
   });
+
+  // --------- Rendu du calendrier --------- //
   calendar.render();
   createDefault();
   width_event = getWidthOfEvent();
   initSoldeConge();
   $('.fc-next-button').click(function(){
     createDefault();
-    $('.specialPresent').css('width',width_event / 2);
-    $('.specialRight').css('width',width_event / 2);
-    $('.specialLeft').css('width',width_event / 2);
+    setWidthViewChanges();
     setHeightOfRow();
   })
   $('.fc-prev-button').click(function(){
-    $('.specialPresent').css('width',width_event / 2);
-    $('.specialRight').css('width',width_event / 2);
-    $('.specialLeft').css('width',width_event / 2);
-    setHeightOfRow();
+      setWidthViewChanges();
+      setHeightOfRow();
   })
   $('.fc-customDay-button').click(function(){
-    getWidthOfEvent();
-    $('.specialPresent').css('width',width_event / 2);
-    $('.specialRight').css('width',width_event / 2);
-    $('.specialLeft').css('width',width_event / 2);
-    setHeightOfRow();
+      getWidthOfEvent();
+      setWidthViewChanges();
+      setHeightOfRow();
   })
   $('.fc-customWeek-button').click(function(){
-    getWidthOfEvent();
-    $('.specialPresent').css('width',width_event / 2);
-    $('.specialRight').css('width',width_event / 2);
-    $('.specialLeft').css('width',width_event / 2);
-    setHeightOfRow();
+      getWidthOfEvent();
+      setWidthViewChanges();
+      setHeightOfRow();
   })
   $('.fc-custom3Month-button').click(function(){
-    getWidthOfEvent();
-    $('.specialPresent').css('width',width_event / 2);
-    $('.specialRight').css('width',width_event / 2);
-    $('.specialLeft').css('width',width_event / 2);
-    setHeightOfRow();
+      getWidthOfEvent();
+      setWidthViewChanges();
+      setHeightOfRow();
   })
+  ////////////////////////////////////////////
 });
-
-$(document).ready(function(){
-  $('#typeEvent').change(function(){
-    switch($('#typeEvent option:selected').val()){
-      case 'demandeConge':
-        $('#type-conge-content').show();
-        $('#justification-content').show();
-        $('#addToGoogleAgenda').show();
-        break;
-      case 'conge' :
-        $('#type-conge-content').show();
-        $('#justification-content').show();
-        $('#addToGoogleAgenda').show();
-        break;
-      case 'absence' :
-        $('#type-conge-content').hide();
-        $('#justification-content').show();
-        $('#addToGoogleAgenda').hide();
-        break;
-      case 'arret' :
-        $('#type-conge-content').hide();
-        $('#justification-content').show();
-        $('#addToGoogleAgenda').hide();
-        break;
-      case 'teletravail' :
-        $('#type-conge-content').hide();
-        $('#justification-content').hide();
-        $('#addToGoogleAgenda').show();
-        break;
-      case 'formation' :
-        $('#type-conge-content').hide();
-        $('#justification-content').hide();
-        $('#addToGoogleAgenda').show();
-        break;
-      case 'rdv_pro' :
-        $('#type-conge-content').hide();
-        $('#justification-content').hide();
-        $('#addToGoogleAgenda').show();
-        break;
-      case 'recup' :
-        $('#type-conge-content').hide();
-        $('#justification-content').hide();
-        $('#addToGoogleAgenda').show();
-        break;
-    }
-  })
-})
