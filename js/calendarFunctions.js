@@ -22,7 +22,7 @@ function thisDateHasEvent(start,end,resourceId,isTrue = false,startHour,endHour)
   
   else{ // External Event = plrs journées
       let allEventsFilter = allEvents.filter(e => daysToCheck.find(date => moment(date).isSame(moment(e.start),'day') || moment(date).isSame(e.end,'day')))
-      let ETR = pushEventsToRemove(allEventsFilter,resourceId,startHour,endHour);
+      let ETR = pushEventsToRemove(allEventsFilter,resourceId,startHour,endHour,start,end);
       eventsToRemove = ETR[0];
       hasNext = ETR[1];
   }
@@ -93,7 +93,7 @@ function updateTotalPresenceAtDate(event){
   
   if(start.isSame(end,'day') || end == null){
     eventTotPresence = getEventTotPrence(start); 
-    if(eventsAtDate.length == 1){
+    if(eventsAtDate.length >= 1){
       update(compteurPresence,eventTotPresence, 0.5);    
     }
     else{
@@ -128,9 +128,7 @@ function create_unique_ID(){
 
 // --------- Tableau contenant toutes les dates entre une start date et une end date  --------- //
 function createDateArray(start,end){
-  let
-    dateArray = [],
-    dt = new Date(start);
+  let dateArray = [], dt = new Date(start);
 
   while (moment(dt).isSameOrBefore(end) || moment(dt).isSame(end,'day')) {
     dateArray.push(new Date(dt));

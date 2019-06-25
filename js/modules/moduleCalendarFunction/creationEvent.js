@@ -5,7 +5,7 @@
 
 /* --------- selectionne les évènements à retirer
               Si un évènement autre que présent se trouve sur la plage de date, impossible de créer l'évènement --------- */
-function pushEventsToRemove(allEventsFilter,resourceId,startHour,endHour){
+function pushEventsToRemove(allEventsFilter,resourceId,startHour,endHour,start,end){
   let _eventsToRemove = [];
   let _hasNext = false;
   if(allEventsFilter.length == 0){
@@ -18,10 +18,13 @@ function pushEventsToRemove(allEventsFilter,resourceId,startHour,endHour){
               _eventsToRemove.push(e); 
           }  
           else{
-              if( !(moment(e.start).hour() == 13 && endHour == 'Après-midi') && !(moment(e.end).hour() == 12 && startHour == 'Après-midi') )
-                  _hasNext = true;
+              _hasNext = true;
+              if( (moment(e.start).hour() == 13 && endHour == 'Après-midi' && moment(e.start).isSame(end,'day')) )
+                _hasNext = false;
+              if( (moment(e.end).hour() == 12 && startHour == 'Après-midi' && moment(e.end).isSame(start,'day')) )
+                _hasNext = false;
           }
-          })
+      })
   }
   return [_eventsToRemove,_hasNext];
 }
@@ -52,14 +55,14 @@ function addEventPresentIfMidDay(start,end,event,startHour,endHour){
 // --------- modifie l'aparence d'un évènement qui commence ou fini sur un specialPresent --------- //
 function setWidthEvent(start,end,event){
   let e = calendar.getEvents().filter(e=> (moment(e.start).isSame(start,'day') || moment(e.start).isSame(end,'day')) && e.classNames[0] == 'specialPresent' && e.getResources()[0].id == event.getResources()[0].id);
-  let specialPresent = e[0];
+  let specialPresent = e[0]; 
   let _ID = event.extendedProps.ID;
 
   if(moment(start).isSame(end,'day')){
-    if(moment(specialPresent.start).hour() == 9){
+    if(specialPresent.classNames[1] == 'split-left'){
       setPropOfEvent_RemoveSp([event.classNames[0],'specialRight'],event,specialPresent);
     }
-    else if(moment(specialPresent.start).hour() == 13){
+    else if(specialPresent.classNames[1] == 'split-right'){
       setPropOfEvent_RemoveSp([event.classNames[0],'specialLeft'],event,specialPresent);
     }
   } 
@@ -68,7 +71,7 @@ function setWidthEvent(start,end,event){
     let data =  setData(specialPresent,start,end,event);
     let ESplitStart = data[0],  ESplitEnd = data[1],  ESplitClassNames = data[2], resetEventStart = data[3], resetEventEnd = data[4];
     let eSplit = createEvent(ESplitClassNames,ESplitStart,ESplitEnd,event.getResources()[0].id);
-    let resetEvent = createEvent(event.classNames[0],resetEventStart,resetEventEnd,event.getResources()[0].id);
+    let resetEvent = createEvent([event.classNames[0],'zIndex'],resetEventStart,resetEventEnd,event.getResources()[0].id);
     traitement_ES_RE(specialPresent, event, resetEvent, eSplit, _ID);
   }
 }
@@ -166,7 +169,7 @@ function checkDropOnSpecialPresent(event){
       || moment(e.end).isSame(event.start,'day') && e.getResources()[0].id == event.getResources()[0].id)
       && e.classNames[0] != 'present'
       && e.classNames[0] != 'specialPresent'
-    ).length == 2;
+    ).length >= 2;
     return bool;
   }
   catch{

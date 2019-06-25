@@ -23,7 +23,8 @@ function getEventTotPrence(ETPstart){
 // --------- obtient le / les événements  --------- //
 function getEventAtDate(event){
   let _eventsAtDate;
-  _eventsAtDate = calendar.getEvents().filter(e=>e.extendedProps.ID == event.extendedProps.ID && e.classNames[0] != event.classNames[0] || e.classNames[1] == 'specialLeft' || e.classNames[1] == 'specialRight');  
+  _eventsAtDate = calendar.getEvents().filter(e=>e.extendedProps.ID == event.extendedProps.ID);  
+  _eventsAtDate.splice(0,1);
   return _eventsAtDate;
 }
 /////////////////////////////////////////////////////
@@ -35,7 +36,7 @@ function resetTotalPresence(event){
 
   if(start.isSame(end,'day') || end == null){
     eventTotPresence = getEventTotPrence(start);
-    let duration = getDuration(event.classNames[0]);
+    let duration = getDuration(event.classNames);
     update(compteurPresence,eventTotPresence,duration);
   }
   
@@ -58,21 +59,12 @@ function resetTotalPresence(event){
 //////////////////////////////////////////////////////////////////////////////////////////
   
   
-// --------- ajoute/enlève la durée de l'événement aux totaux de présence --------- //
-function update(compteurPresence,eventTotPresence, duration){
-  compteurPresence = eventTotPresence[0].extendedProps.totPres - duration;
-  eventTotPresence[0].setProp('title',compteurPresence);
-  eventTotPresence[0].setExtendedProp('totPres',compteurPresence);
-}
-/////////////////////////////////////////////////////////////////////////////////////
-  
-  
 // --------- obtient la durée de l'événement : 1 jour ou un demi jour --------- //
 function getDuration(classNames){
   let _duration;
-  if(classNames == 'specialPresent')
+  if(classNames[0] == 'specialPresent')
     _duration = 0.5;
-  else if(classNames == 'specialLeft' || classNames == 'specialRight')
+  else if(classNames[1] == 'specialLeft' || classNames[1] == 'specialRight')
     _duration = - 0.5;
   else
     _duration = -1;

@@ -75,7 +75,7 @@ function createModifBoolean(event,variables,oldVariables){
 // --------- Modifie un évènements autre que Congé ou Demande de Congé --------- //
 function modif_event(event,variables){
     let resourceId = event.getResources()[0].id;
-    let inputsValid = checkIfInputValid($('#form-info-event :input'),variables[0].start, variables[0].end, variables[0].startHour, variables[0].endHour, true, false, event);
+    let inputsValid = checkIfInputValid($('#form-info-event :input'),variables[0].start, variables[0].end, variables[0].startHour, variables[0].endHour, true, false, event,true);
   
     if(inputsValid){
       toggle_invalid_isSame($('#form-info-event :input'),true,false);  
@@ -94,7 +94,7 @@ function modif_event(event,variables){
 function modif_event_typeC(event, addDaysAndHalf, removeDaysAndHalf, variables){
     let nbrOfDays = (moment(variables[0].end).dayOfYear() - moment(variables[0].start).dayOfYear() ) - (moment(event.end).dayOfYear() - moment(event.start).dayOfYear());
     let _classNames = event.classNames[0];
-    let inputsValid = checkIfInputValid($('#form-info-event :input'),variables[0].start, variables[0].end, variables[0].startHour, variables[0].endHour, true, false, event);
+    let inputsValid = checkIfInputValid($('#form-info-event :input'),variables[0].start, variables[0].end, variables[0].startHour, variables[0].endHour, true, false, event,true);
     let resourceId = event.getResources()[0].id;
     if(addDaysAndHalf)
       nbrOfDays = nbrOfDays - 0.5

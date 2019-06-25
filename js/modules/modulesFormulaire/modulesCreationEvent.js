@@ -117,7 +117,7 @@ function infoManagment(isTypeAddE,variables,form,idInfo,nbrOfSlice,event,resourc
 
   
 // --------- Vérifie que les inputs des modals sont valides --------- //
-function checkIfInputValid(form, start, end, startHour, endHour, isTypeC, isTypeAddE, event){
+function checkIfInputValid(form, start, end, startHour, endHour, isTypeC, isTypeAddE, event, isFormInfo = false){
     try{
         let startIndex = 1;
         if(isTypeC)
@@ -130,7 +130,8 @@ function checkIfInputValid(form, start, end, startHour, endHour, isTypeC, isType
             $('.invalid').show()
             var element = document.getElementById(form[startIndex].id);
             element.classList.add('not-valid');
-            event.remove();
+            if(isFormInfo)
+                event.remove();
             toggle_spinner(false);
             return false;
         }
@@ -143,7 +144,8 @@ function checkIfInputValid(form, start, end, startHour, endHour, isTypeC, isType
             element.classList.add('not-valid');
             element = document.getElementById(form[startIndex+2].id);
             element.classList.add('not-valid');
-            event.remove();
+            if(isFormInfo)
+                event.remove();
             toggle_spinner(false);
             return false;
         }
