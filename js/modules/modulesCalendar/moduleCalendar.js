@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////
 
 
+// --------- Modifie l'apparence du formulaire addEvent en fonction de typeEvent --------- //
 $(document).ready(function(){
   try{
     $('#typeEvent').change(function(){
@@ -38,7 +39,9 @@ $(document).ready(function(){
     unknownErrorManagment($('#modalAddEvent'));
   }
 })
-  
+////////////////////////////////////////////////////////////////////////////////////////////
+
+
 // --------- show modal et la remplis avec les infos de l'événement cliqué --------- //
 function showFormInfo(modal,typeInfo,event){
   $('#info-type-conge').hide();
@@ -106,3 +109,7 @@ function toggleElementFormAddEvent(tcc,js,atga){
       $('#addToGoogleAgenda').show();
 }
 //////////////////////////////////////////////////////////////////
+
+function setWidthViewChanges(){
+  $('.specialPresent').css('width',width_event / 2)
+}

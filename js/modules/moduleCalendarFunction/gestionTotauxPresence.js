@@ -23,8 +23,7 @@ function getEventTotPrence(ETPstart){
 // --------- obtient le / les événements  --------- //
 function getEventAtDate(event){
   let _eventsAtDate;
-  _eventsAtDate = calendar.getEvents().filter(e=>e.extendedProps.ID == event.extendedProps.ID);  
-  _eventsAtDate.splice(0,1);
+  _eventsAtDate = calendar.getEvents().filter(e=>e.extendedProps.ID == event.extendedProps.ID && (e.classNames[0] == 'specialPresent' || e.classNames[1] == 'specialRight' || e.classNames[1] == 'specialLeft') );  
   return _eventsAtDate;
 }
 /////////////////////////////////////////////////////

@@ -3,7 +3,7 @@
 ///////////////////////////////////
 
 
-/* --------- Check si un évenemment existe à/aux dates(s) du drop 
+/* --------- Check si un évenemment existe à/aux dates(s) du drop
              Si celui-ci est de type présent / ferié le drop est possible, sinon erreur --------- */
 function thisDateHasEvent(start,end,resourceId,isTrue = false,startHour,endHour){
   let hasNext = false;
@@ -12,24 +12,24 @@ function thisDateHasEvent(start,end,resourceId,isTrue = false,startHour,endHour)
     allEvents.splice(allEvents.length - 1);
   let daysToCheck = createDateArray(start,end);
   let eventsToRemove = [];
-  
+
   if(moment(start).isSame(moment(end),'day')){ // External Event = 1 journée
       let allEventsFilter = allEvents.filter(e => moment(e.start).isSame(moment(start),'day'))
       let ETR = pushEventsToRemove(allEventsFilter,resourceId,startHour,endHour);
       eventsToRemove = ETR[0];
       hasNext = ETR[1];
   }
-  
+
   else{ // External Event = plrs journées
       let allEventsFilter = allEvents.filter(e => daysToCheck.find(date => moment(date).isSame(moment(e.start),'day') || moment(date).isSame(e.end,'day')))
       let ETR = pushEventsToRemove(allEventsFilter,resourceId,startHour,endHour,start,end);
       eventsToRemove = ETR[0];
       hasNext = ETR[1];
   }
-  
+
   if(hasNext)
       eventsToRemove.push(hasNext);
-  
+
   return eventsToRemove;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,8 +38,8 @@ function thisDateHasEvent(start,end,resourceId,isTrue = false,startHour,endHour)
 // --------- Gère tout ce qu'il faut lors de la création d'un nouvel évènement  --------- //
 function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal){
   if(eventsToRemove.length>0 && eventsToRemove[eventsToRemove.length-1] != true && eventsToRemove.find(e => e == 'thisDateIsEmpty')!="thisDateIsEmpty"){
-    traitementEventManagment(event,startHour,endHour,start,end,event,eventsToRemove,modal);       
-    updateTotalPresenceAtDate(event);  
+    traitementEventManagment(event,startHour,endHour,start,end,event,eventsToRemove,modal);
+    updateTotalPresenceAtDate(event);
     postTraitement_EM(event,modal);
   }
   else if(eventsToRemove.find(e => e == 'thisDateIsEmpty')){
@@ -47,11 +47,9 @@ function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal)
     postTraitement_EM(event,modal);
   }
   else{
-    setHeightOfRow();
-    $(modal).modal('hide');  
+    $(modal).modal('hide');
     displayError();
   }
-
   toggle_spinner(false);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -59,11 +57,11 @@ function EventsManagment(eventsToRemove,startHour,endHour,start,end,event,modal)
 
 // --------- Supprimer un évènement (sauf évenement present) --------- //
 function deleteEvent(eventRightClicked, isAmodif = false){
-  // Variables 
+  // Variables
   let data = dataDeleteEvent(eventRightClicked);
   let _ID = data[0],eventsToRemove = data[1],dates = data[2],hasSpecialRight = [],hasSpecialLeft = [], events = [];
   let hasSpecial = removeEventstoDelete(eventsToRemove, hasSpecialRight, hasSpecialLeft);
-  hasSpecialRight = hasSpecial[0],hasSpecialLeft = hasSpecial[1]; 
+  hasSpecialRight = hasSpecial[0],hasSpecialLeft = hasSpecial[1];
   let checkIfSpecial = calendar.getEvents().filter(e=>(moment(e.start).isSame(eventRightClicked.start,'day') || moment(e.start).isSame(eventRightClicked.end,'day')) && (e.classNames[1] == 'specialRight' || e.classNames[1] == 'specialLeft' ));
   if(hasSpecial[0].length == 0 && hasSpecial[1].length == 0){
     hasSpecial = updateTotPres_checkIfSpecial(checkIfSpecial,hasSpecialLeft,hasSpecialRight);
@@ -78,7 +76,7 @@ function deleteEvent(eventRightClicked, isAmodif = false){
   events = replaceDeletedByDefault(dates,events,hasSpecialRight,hasSpecialLeft,eventsToRemove,eventRightClicked);
   calendar.addEventSource(events);
   fusion(hasSpecialLeft,hasSpecialRight,eventRightClicked);
-  
+
   // post traitement
   $('#modalDelete').modal('hide');
   setHeightOfRow();
@@ -90,21 +88,21 @@ function deleteEvent(eventRightClicked, isAmodif = false){
 function updateTotalPresenceAtDate(event){
   let start = moment(event.start), end = event.end, eventTotPresence, compteurPresence;
   let eventsAtDate =  getEventAtDate(event);
-  
+
   if(start.isSame(end,'day') || end == null){
-    eventTotPresence = getEventTotPrence(start); 
+    eventTotPresence = getEventTotPrence(start);
     if(eventsAtDate.length >= 1){
-      update(compteurPresence,eventTotPresence, 0.5);    
+      update(compteurPresence,eventTotPresence, 0.5);
     }
     else{
       update(compteurPresence,eventTotPresence, 1);
     }
   }
   else{
-    let dates = createDateArray(start,end);    
+    let dates = createDateArray(start,end);
     dates.forEach(d=>{
       if(!calendar.getEvents().find(e => moment(e.start).isSame(d,'day') && e.classNames[0] == 'ferie_WE')){
-        eventTotPresence = getEventTotPrence(d); 
+        eventTotPresence = getEventTotPrence(d);
         if(eventTotPresence.length > 0){
           update(compteurPresence,eventTotPresence, 1);
         }
@@ -117,7 +115,7 @@ function updateTotalPresenceAtDate(event){
   }
 }
 ///////////////////////////////////////////////////////////////////////////////////
-          
+
 
 // --------- Creer ID unique --------- //
 function create_unique_ID(){
@@ -144,9 +142,10 @@ function displayError(){
   $('#alertD').show();
   $('#modalDemandeConge').modal('hide');
   displayAlert($('#alertD'));
-        
+
   setTimeout(function(){
     $('#eventReceive').val().remove();
+    setHeightOfRow();
   },10);
 }
 ///////////////////////////////////////

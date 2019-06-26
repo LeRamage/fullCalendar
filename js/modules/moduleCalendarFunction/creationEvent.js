@@ -2,6 +2,8 @@
 // Modules de creation d'un nouvel événement //
 ///////////////////////////////////////////////
 
+// Variables Globales // 
+var specialPresentToReplace = [];
 
 /* --------- selectionne les évènements à retirer
               Si un évènement autre que présent se trouve sur la plage de date, impossible de créer l'évènement --------- */
@@ -18,17 +20,33 @@ function pushEventsToRemove(allEventsFilter,resourceId,startHour,endHour,start,e
               _eventsToRemove.push(e); 
           }  
           else{
-              _hasNext = true;
-              if( (moment(e.start).hour() == 13 && endHour == 'Après-midi' && moment(e.start).isSame(end,'day')) )
-                _hasNext = false;
-              if( (moment(e.end).hour() == 12 && startHour == 'Après-midi' && moment(e.end).isSame(start,'day')) )
-                _hasNext = false;
+              _hasNext = hasMidDayAvailable(e,start,end,endHour,startHour);
           }
       })
   }
   return [_eventsToRemove,_hasNext];
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// --------- check si e à une demi journée de dispo qui match avec new event --------- //
+function hasMidDayAvailable(e,start,end,endHour,startHour){
+  let _available = false;
+  if(moment(start).isSame(moment(end),'day')){
+    if( (moment(e.start).hour() == 13 && endHour == 'Après-midi') )
+      _available = true;
+    if( (moment(e.end).hour() == 12 && startHour == 'Après-midi') )
+      _available = true;
+  }
+  else{
+    if( (moment(e.start).hour() == 13 && endHour == 'Après-midi' && moment(e.start).isSame(end,'day')) )
+      _available = true;
+    if( (moment(e.end).hour() == 12 && startHour == 'Après-midi' && moment(e.end).isSame(start,'day')) )
+      _available = true;
+  }
+  return !_available;
+}
+////////////////////////////////////////////////////////////////////////////////////////
 
 
 // --------- Ajout d' évenements specialPresent d'une demi journée --------- //
@@ -55,39 +73,61 @@ function addEventPresentIfMidDay(start,end,event,startHour,endHour){
 // --------- modifie l'aparence d'un évènement qui commence ou fini sur un specialPresent --------- //
 function setWidthEvent(start,end,event){
   let e = calendar.getEvents().filter(e=> (moment(e.start).isSame(start,'day') || moment(e.start).isSame(end,'day')) && e.classNames[0] == 'specialPresent' && e.getResources()[0].id == event.getResources()[0].id);
-  let specialPresent = e[0]; 
+  let specialPresent = getSpecialPresent(e);
   let _ID = event.extendedProps.ID;
 
   if(moment(start).isSame(end,'day')){
-    if(specialPresent.classNames[1] == 'split-left'){
-      setPropOfEvent_RemoveSp([event.classNames[0],'specialRight'],event,specialPresent);
+    if(specialPresent[0].classNames[1] == 'split-left'){
+      setPropOfEvent_RemoveSp([event.classNames[0],'specialRight'],event,specialPresent[0]);
     }
-    else if(specialPresent.classNames[1] == 'split-right'){
-      setPropOfEvent_RemoveSp([event.classNames[0],'specialLeft'],event,specialPresent);
+    else if(specialPresent[0].classNames[1] == 'split-right'){
+      setPropOfEvent_RemoveSp([event.classNames[0],'specialLeft'],event,specialPresent[0]);
     }
   } 
     
   else{
-    let data =  setData(specialPresent,start,end,event);
-    let ESplitStart = data[0],  ESplitEnd = data[1],  ESplitClassNames = data[2], resetEventStart = data[3], resetEventEnd = data[4];
-    let eSplit = createEvent(ESplitClassNames,ESplitStart,ESplitEnd,event.getResources()[0].id);
-    let resetEvent = createEvent([event.classNames[0],'zIndex'],resetEventStart,resetEventEnd,event.getResources()[0].id);
-    traitement_ES_RE(specialPresent, event, resetEvent, eSplit, _ID);
+    specialPresent.forEach(sP=>{
+      let data =  setData(sP,start,end,event);
+      let ESplitStart = data[0],  ESplitEnd = data[1],  ESplitClassNames = data[2], resetEventStart = data[3], resetEventEnd = data[4];
+      let eSplit = createEvent(ESplitClassNames,ESplitStart,ESplitEnd,event.getResources()[0].id);
+      let resetEvent = createEvent([event.classNames[0],'zIndex'],resetEventStart,resetEventEnd,event.getResources()[0].id);
+      traitement_ES_RE(sP, resetEvent, eSplit, _ID);
+    })
+    event.remove();
   }
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  
+
+// --------- Get specialPresent(s) à remplacer --------- //
+function getSpecialPresent(e){
+  let _specialPresent = [];
+  if(e.length > 1){
+    if(specialPresentToReplace.length == 1)
+      _specialPresent.push(e[specialPresentToReplace[0]]);
+    else{
+      _specialPresent.push(e[0]);
+      _specialPresent.push(e[1]); 
+    }
+  }
+  else
+    _specialPresent.push(e[0]);
+  return _specialPresent;
+}
+//////////////////////////////////////////////////////////
+
+
 // --------- traitement pour eSplit et resetEvent --------- //
-function traitement_ES_RE(specialPresent, event, resetEvent, eSplit, _ID){
+function traitement_ES_RE(specialPresent, resetEvent, eSplit, _ID){
   specialPresent.remove();
-  event.remove();
   calendar.addEvent(resetEvent);
   calendar.addEvent(eSplit);
   resetEvent = calendar.getEvents()[calendar.getEvents().length-2];
   resetEvent.setExtendedProp('ID',_ID);
   eSplit = calendar.getEvents()[calendar.getEvents().length-1];
   eSplit.setExtendedProp('ID',_ID);
+  if(resetEvent.end == null)
+    resetEvent.remove();
 }
 /////////////////////////////////////////////////////////////
   
@@ -163,13 +203,23 @@ function addMidDay(start,end,event,startHour,endHour){
 // --------- check si le nouvel événement ajouté est placé sur une demi journée de présence --------- //
 function checkDropOnSpecialPresent(event){
   try{
-    let bool = calendar.getEvents().filter(e => 
+    specialPresentToReplace = [];
+    let bool = false;
+    let events = calendar.getEvents().filter(e => 
       (moment(e.start).isSame(event.start,'day') && e.getResources()[0].id == event.getResources()[0].id 
       || moment(e.start).isSame(event.end,'day') && e.getResources()[0].id == event.getResources()[0].id
       || moment(e.end).isSame(event.start,'day') && e.getResources()[0].id == event.getResources()[0].id)
       && e.classNames[0] != 'present'
       && e.classNames[0] != 'specialPresent'
-    ).length >= 2;
+    );
+    if(events.length >= 2)
+      bool = true;
+    if(events.length == 2){
+      if(moment(event.start).isBefore(events[0].start,'day'))
+        specialPresentToReplace.push(1);
+      else
+        specialPresentToReplace.push(0);
+    }
     return bool;
   }
   catch{

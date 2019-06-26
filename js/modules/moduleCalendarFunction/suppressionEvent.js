@@ -50,7 +50,7 @@ function updateTotPres_checkIfSpecial(checkIfSpecial,hasSpecialLeft,hasSpecialRi
       let e = checkIfSpecial[0];
       hasSpecialRight[0] = true;
       hasSpecialRight[1] = e.start;
-      hasSpecialRight[2] = calendar.getEvents().filter(ev=>(moment(ev.start).isSame(e.start,'day') || moment(ev.start).isSame(e.end,'day')) && ev.getResources()[0].id == e.getResources()[0].id && ev != e)[0].extendedProps.ID;
+      hasSpecialRight[2] = calendar.getEvents().filter(ev=>(moment(ev.end).isSame(e.start,'day') || moment(ev.start).isSame(e.end,'day')) && ev.getResources()[0].id == e.getResources()[0].id && ev != e)[0].extendedProps.ID;
     }
   }
   return [hasSpecialLeft,hasSpecialRight];

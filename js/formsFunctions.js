@@ -148,9 +148,9 @@ function cancel(event){
   $('.invalid').hide();
   $('.isTheSame').hide();
 
-  setHeightOfRow();
   toggle_spinner(false);
   event.remove();
+  setHeightOfRow();
 }
 ////////////////////////////////////////////////////////////////
 

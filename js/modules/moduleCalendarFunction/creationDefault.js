@@ -195,7 +195,7 @@ function createDefaultRecap(dates){
   dates.forEach(date=>{
     nbrOfPresentAtThisDay = calendar.getEvents().filter(e=>moment(e.start).isSame(date,'day') && e.classNames[0] == 'present')
     if(![0,6].includes(date.getDay())){
-      event = createEventRecap(start,nbrOfPresentAtThisDay.length);
+      event = createEventRecap(date,nbrOfPresentAtThisDay.length);
       events.push(event)
     }
   })

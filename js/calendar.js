@@ -108,6 +108,23 @@ document.addEventListener('DOMContentLoaded', function() {
       { id: 'emp4', type: 'Employés',title: 'Alain Dii' },
       { id: 'recap-present', type:'Récapitulatif', title: 'Total Présences'},
     ],
+
+    events: [
+      {
+        start:new Date('2019-06-03').setHours(9,0,0,0),
+        end:new Date('2019-06-05').setHours(18,0,0,0),
+        classNames:'demandeConge',
+        extendedProps:'_abcd',
+        resourceId:'emp1',
+      },
+      {
+        start:new Date('2019-06-03'),
+        classNames:['specialPresent','split-right'],
+        extendedProps:'_abcd',
+        resourceId:'emp1',
+      },
+    ],
+
     ///////////////////////////////////
     
     // --------- Fonction clique simple sur un événement (autre que présent / special Présent / recap) --------- //
@@ -149,7 +166,8 @@ document.addEventListener('DOMContentLoaded', function() {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     // --------- Fonction quand un external event est dropé sur le calendrier --------- //
-    drop: function(arg) {  
+    drop: function(arg) {
+      setHeightOfRow(); 
       let Cid = arg.draggedEl.id;
 
       if(Cid == 'demandeConge')
@@ -224,6 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --------- Fonction de gestion des autorisations pour le drop d'external Event --------- //
     eventAllow: function(dropLocation, draggedEvent){
+      setHeightOfRow();
       events = calendar.getEvents().filter( e => moment(e.start).isSame(moment(dropLocation.start),'day'))
       events = events.filter(e=>e.getResources()[0].id == dropLocation.resource.id)
       if(events.find(e=>e.classNames[0] == 'present')){
@@ -233,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
           return allowDrop(draggedEvent,dropLocation);
       }      
       else{
-        setHeightOfRow();
+        //setHeightOfRow();
         return false;
       }         
     },
@@ -243,7 +262,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // --------- Rendu du calendrier --------- //
   calendar.render();
   createDefault();
+  setHeightOfRow();
   width_event = getWidthOfEvent();
+  setWidthViewChanges();
   initSoldeConge();
   $('.fc-next-button').click(function(){
     createDefault();
