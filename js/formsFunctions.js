@@ -4,40 +4,41 @@
 
 
 // --------- creation d'évenement --------- //
-function confirm_form_event(form, nbrOfSlice, modal, idInfo){
+async function confirm_form_event(form, nbrOfSlice, modal, idInfo){
   // cache le bouton validation et met un spinner pdt le traitement
-  toggle_spinner(true); // appelé après le reste donc ne s'affiche pas 
-
-  // Declaration Variables //
-  try{
-    let booleans = createBooleans(modal);
-    let isTypeAddE = booleans[0], isTypeC = booleans[1], isConge = booleans[2];
-    if(modal[0].id == 'modalAddEvent'){
-      idInfo = setIdInfo(idInfo);
-    }  
-    let variables = pre_traitement(form, modal, isTypeAddE, isTypeC);
-
-    // Check si les inputs sont valides
-    let inputsValid = checkIfInputValid(form, variables[0].start, variables[0].end, variables[0].startHour, variables[0].endHour, isTypeC, isTypeAddE, variables[0].event);
-
-    if(inputsValid){
-        let inoffSolde = true;
-        // Check le solde de Conge si l'évenement est de type conge ou demande de conge
-        if(isTypeC)
-          inoffSolde = checkSolde(form,variables[0].event, variables[0].nbrOfDays , modal, isTypeC, isTypeAddE);
-        if(inoffSolde){
-            toggle_invalid_isSame(form,isTypeC,isTypeAddE);
-            if(isConge)
-                modifSolde(isTypeC,isTypeAddE,variables[0].nbrOfDays,variables[0].resourceId);
-            infoManagment(isTypeAddE,variables,form,idInfo,nbrOfSlice,variables[0].event,variables[0].resourceId,modal);
-            let eventsToRemove = thisDateHasEvent(variables[0].start, variables[0].end, variables[0].resourceId, true, variables[0].startHour, variables[0].endHour);
-            EventsManagment(eventsToRemove, variables[0].startHour, variables[0].endHour, variables[0].start, variables[0].end, variables[0].event, modal);
-        }
+  toggle_spinner(true).then(() => {
+    // Declaration Variables //
+    try{
+      let booleans = createBooleans(modal);
+      let isTypeAddE = booleans[0], isTypeC = booleans[1], isConge = booleans[2];
+      if(modal[0].id == 'modalAddEvent'){
+        idInfo = setIdInfo(idInfo);
+      }  
+      let variables = pre_traitement(form, modal, isTypeAddE, isTypeC);
+  
+      // Check si les inputs sont valides
+      let inputsValid = checkIfInputValid(form, variables[0].start, variables[0].end, variables[0].startHour, variables[0].endHour, isTypeC, isTypeAddE, variables[0].event);
+  
+      if(inputsValid){
+          let inoffSolde = true;
+          // Check le solde de Conge si l'évenement est de type conge ou demande de conge
+          if(isTypeC)
+            inoffSolde = checkSolde(form,variables[0].event, variables[0].nbrOfDays , modal, isTypeC, isTypeAddE);
+          if(inoffSolde){
+              toggle_invalid_isSame(form,isTypeC,isTypeAddE);
+              if(isConge)
+                  modifSolde(isTypeC,isTypeAddE,variables[0].nbrOfDays,variables[0].resourceId);
+              infoManagment(isTypeAddE,variables,form,idInfo,nbrOfSlice,variables[0].event,variables[0].resourceId,modal);
+              let eventsToRemove = thisDateHasEvent(variables[0].start, variables[0].end, variables[0].resourceId, true, variables[0].startHour, variables[0].endHour);
+              EventsManagment(eventsToRemove, variables[0].startHour, variables[0].endHour, variables[0].start, variables[0].end, variables[0].event, modal);
+          }
+      }
     }
-  }
-  catch{
-    unknownErrorManagment(modal);
-  } 
+    catch{
+      unknownErrorManagment(modal);
+    } 
+  }); // appelé après le reste donc ne s'affiche pas
+
 }
 //////////////////////////////////////////////////
 

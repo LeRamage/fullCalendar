@@ -181,16 +181,22 @@ function checkSolde(form,event,nbrOfDays,modal,isTypeC,isTypeAddE){
 
   
 // --------- active/desactive le spinner lors de création/modification d'évènement --------- //
-function toggle_spinner(bool){
-    if(bool){
-        $('.btn-primary').hide();
-        $('.spinner-border').show();
-    }
-    else if(!bool){
-        $('.spinner-border').hide();
-        $('.btn-primary').show();
-        $('#valid-modif-event-btn').hide();
-    }
+async function toggle_spinner(bool){
+    return new Promise(async (resolve, reject) => {
+        if(bool){
+            $('.btn-primary').hide(500, function() {
+                $('.spinner-border').show(500, function(){
+                    return resolve();
+                });
+            });
+        }
+        else if(!bool){
+            $('.spinner-border').hide();
+            $('.btn-primary').show();
+            $('#valid-modif-event-btn').hide();
+            return reject();
+        }
+    });
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////
 

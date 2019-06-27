@@ -25,7 +25,7 @@ function removeEventstoDelete(eventsToRemove, hasSpecialRight, hasSpecialLeft){
     if(e.classNames[1] == 'specialLeft'){
       hasSpecialLeft[0] = true;
       hasSpecialLeft[1] = e.start;
-      hasSpecialLeft[2] = calendar.getEvents().filter(ev=>(moment(ev.start).isSame(e.start,'day') || moment(ev.start).isSame(e.end,'day')) && ev.getResources()[0].id == e.getResources()[0].id && ev != e)[0].extendedProps.ID;
+      hasSpecialLeft[2] = calendar.getEvents().filter(ev=>(moment(ev.end).isSame(e.start,'day') || moment(ev.start).isSame(e.end,'day')) && ev.getResources()[0].id == e.getResources()[0].id && ev != e)[0].extendedProps.ID;
     }
     e.remove();
     resetTotalPresence(e);
